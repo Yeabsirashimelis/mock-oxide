@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Endpoint } from "@/app/generated/prisma/client";
+import { LivePreview } from "./live-preview";
+import { CodeSnippets } from "./code-snippets";
 
 interface EndpointFormProps {
   mode: "create" | "edit";
@@ -348,6 +350,27 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
             />
           </div>
         </div>
+      </div>
+
+      {/* Live Preview */}
+      <div className="mt-6">
+        <h3 className="text-sm font-medium text-zinc-300 mb-3">Live Preview</h3>
+        <LivePreview
+          schema={formData.schema}
+          isArray={formData.isArray}
+          arrayCount={formData.arrayCount}
+        />
+      </div>
+
+      {/* Code Snippets */}
+      <div className="mt-6">
+        <h3 className="text-sm font-medium text-zinc-300 mb-3">Code Snippets</h3>
+        <CodeSnippets
+          projectSlug={projectSlug}
+          path={formData.path}
+          method={formData.method}
+          authRequired={formData.authRequired}
+        />
       </div>
 
       {error && (
