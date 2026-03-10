@@ -26,6 +26,7 @@ model user {
   accounts      account[]
   projects      Project[]
   apiKeys       ApiKey[]
+  templates     SchemaTemplate[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -188,6 +189,26 @@ model ApiKey {
 
   @@index([userId])
   @@index([key])
+}
+
+// ============================================
+// SCHEMA TEMPLATES
+// ============================================
+
+model SchemaTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  schema      Json
+
+  // Owner
+  user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ============================================

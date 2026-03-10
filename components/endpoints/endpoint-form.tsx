@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Endpoint } from "@/app/generated/prisma/client";
 import { LivePreview } from "./live-preview";
 import { CodeSnippets } from "./code-snippets";
+
+interface SchemaTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  schema: unknown;
+  createdAt: string;
+}
 
 interface EndpointFormProps {
   mode: "create" | "edit";
@@ -49,6 +57,10 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<SchemaTemplate[]>([]);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -67,6 +79,22 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
     authRequired: initialData?.authRequired || false,
     enabled: initialData?.enabled ?? true,
   });
+
+  // Fetch user's templates
+  useEffect(() => {
+    async function fetchTemplates() {
+      try {
+        const response = await fetch("/api/templates");
+        if (response.ok) {
+          const data = await response.json();
+          setTemplates(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch templates:", error);
+      }
+    }
+    fetchTemplates();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -88,6 +116,73 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
       ...prev,
       schema: SCHEMA_EXAMPLES[example],
     }));
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      setError("Template name is required");
+      return;
+    }
+
+    try {
+      let parsedSchema;
+      try {
+        parsedSchema = JSON.parse(formData.schema);
+      } catch {
+        setError("Invalid JSON schema");
+        return;
+      }
+
+      const response = await fetch("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: templateName,
+          description: templateDescription || null,
+          schema: parsedSchema,
+        }),
+      });
+
+      if (response.ok) {
+        const newTemplate = await response.json();
+        setTemplates((prev) => [newTemplate, ...prev]);
+        setTemplateName("");
+        setTemplateDescription("");
+        setShowSaveTemplate(false);
+        setError(null);
+      } else {
+        setError("Failed to save template");
+      }
+    } catch (error) {
+      setError("Failed to save template");
+    }
+  };
+
+  const handleLoadTemplate = (template: SchemaTemplate) => {
+    setFormData((prev) => ({
+      ...prev,
+      schema: JSON.stringify(template.schema, null, 2),
+    }));
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm("Are you sure you want to delete this template?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/templates/${templateId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      } else {
+        setError("Failed to delete template");
+      }
+    } catch (error) {
+      setError("Failed to delete template");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -316,29 +411,110 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
             <label className="block text-sm font-medium text-zinc-300 mb-2">
               JSON Schema
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleExampleSelect("user")}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
+                >
+                  User
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExampleSelect("product")}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
+                >
+                  Product
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExampleSelect("post")}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
+                >
+                  Post
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => handleExampleSelect("user")}
-                className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
+                onClick={() => setShowSaveTemplate(true)}
+                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
               >
-                User
-              </button>
-              <button
-                type="button"
-                onClick={() => handleExampleSelect("product")}
-                className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
-              >
-                Product
-              </button>
-              <button
-                type="button"
-                onClick={() => handleExampleSelect("post")}
-                className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
-              >
-                Post
+                Save as Template
               </button>
             </div>
+
+            {/* Save Template Dialog */}
+            {showSaveTemplate && (
+              <div className="mb-3 p-3 bg-zinc-800 border border-zinc-700 rounded-lg space-y-2">
+                <input
+                  type="text"
+                  placeholder="Template name"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Description (optional)"
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveTemplate}
+                    className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSaveTemplate(false);
+                      setTemplateName("");
+                      setTemplateDescription("");
+                    }}
+                    className="px-3 py-1.5 text-sm border border-zinc-600 hover:border-zinc-500 text-zinc-300 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Saved Templates */}
+            {templates.length > 0 && (
+              <div className="mb-3 space-y-2">
+                <p className="text-xs text-zinc-500">Your Templates:</p>
+                <div className="flex flex-wrap gap-2">
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className="group flex items-center gap-1 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-xs"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleLoadTemplate(template)}
+                        className="text-zinc-300 hover:text-zinc-100 transition-colors"
+                        title={template.description || template.name}
+                      >
+                        {template.name}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTemplate(template.id)}
+                        className="text-zinc-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete template"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <textarea
               name="schema"
               rows={20}
