@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { generateSlug } from "@/lib/db";
+import { generateSlug } from "@/lib/utils";
 
 interface ProjectFormProps {
   mode: "create" | "edit";

@@ -4,6 +4,7 @@ import { getServerSession } from "@/lib/auth-server";
 import { getProjectBySlug } from "@/lib/db";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
 import { EndpointList } from "@/components/projects/endpoint-list";
+import { CopyButton } from "@/components/ui/copy-button";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -73,12 +74,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
             {apiUrl}
           </code>
-          <button
-            onClick={() => navigator.clipboard.writeText(apiUrl)}
-            className="px-3 py-2 text-sm text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
-          >
-            Copy
-          </button>
+          <CopyButton text={apiUrl} />
         </div>
       </div>
 

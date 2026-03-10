@@ -137,7 +137,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"
-              minLength={8}
+              minLength={6}
               className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
