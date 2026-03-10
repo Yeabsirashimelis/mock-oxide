@@ -61,6 +61,7 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+  const [templateSearch, setTemplateSearch] = useState("");
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -184,6 +185,12 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
       setError("Failed to delete template");
     }
   };
+
+  // Filter templates based on search
+  const filteredTemplates = templates.filter((template) =>
+    template.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+    (template.description?.toLowerCase().includes(templateSearch.toLowerCase()) ?? false)
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -487,31 +494,46 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
             {/* Saved Templates */}
             {templates.length > 0 && (
               <div className="mb-3 space-y-2">
-                <p className="text-xs text-zinc-500">Your Templates:</p>
-                <div className="flex flex-wrap gap-2">
-                  {templates.map((template) => (
-                    <div
-                      key={template.id}
-                      className="group flex items-center gap-1 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-xs"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleLoadTemplate(template)}
-                        className="text-zinc-300 hover:text-zinc-100 transition-colors"
-                        title={template.description || template.name}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-zinc-500">Your Templates ({templates.length}):</p>
+                  {templates.length > 3 && (
+                    <input
+                      type="text"
+                      placeholder="Search templates..."
+                      value={templateSearch}
+                      onChange={(e) => setTemplateSearch(e.target.value)}
+                      className="px-2 py-1 bg-zinc-900 border border-zinc-700 rounded text-zinc-100 text-xs placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-40"
+                    />
+                  )}
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
+                  {filteredTemplates.length > 0 ? (
+                    filteredTemplates.map((template) => (
+                      <div
+                        key={template.id}
+                        className="group flex items-center gap-1 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-xs whitespace-nowrap flex-shrink-0"
                       >
-                        {template.name}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTemplate(template.id)}
-                        className="text-zinc-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Delete template"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={() => handleLoadTemplate(template)}
+                          className="text-zinc-300 hover:text-zinc-100 transition-colors"
+                          title={template.description || template.name}
+                        >
+                          {template.name}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTemplate(template.id)}
+                          className="text-zinc-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Delete template"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-zinc-500 italic">No templates found</p>
+                  )}
                 </div>
               </div>
             )}
