@@ -103,9 +103,10 @@ function generateFromSchema(schema: SchemaDefinition): unknown {
     if (typeof value === "string") {
       result[key] = generateValue(value);
     } else if (typeof value === "object" && value !== null) {
-      if ("type" in value && typeof value.type === "string") {
-        const generated = generateValue(value.type);
-        if (value.nullable && Math.random() < 0.2) {
+      const valueObj = value as Record<string, unknown>;
+      if ("type" in valueObj && typeof valueObj.type === "string") {
+        const generated = generateValue(valueObj.type);
+        if (valueObj.nullable && Math.random() < 0.2) {
           result[key] = null;
         } else {
           result[key] = generated;

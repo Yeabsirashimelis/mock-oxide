@@ -1,5 +1,5 @@
 import prisma from "./prisma";
-import { HttpMethod } from "@/app/generated/prisma";
+import { HttpMethod } from "@/app/generated/prisma/client";
 
 // ============================================
 // PROJECT OPERATIONS

@@ -1,4 +1,4 @@
-import { HttpMethod } from "@/app/generated/prisma";
+import { HttpMethod } from "@/app/generated/prisma/client";
 
 // ============================================
 // SCHEMA TYPES
@@ -43,7 +43,9 @@ export interface SchemaField {
   description?: string;
 }
 
-export type SchemaDefinition = Record<string, SchemaField | SchemaFieldType | string | SchemaDefinition>;
+export interface SchemaDefinition {
+  [key: string]: SchemaField | SchemaFieldType | string | SchemaDefinition;
+}
 
 // ============================================
 // API TYPES

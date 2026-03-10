@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateMockData, generateMockArray, generatePaginatedResponse } from "@/lib/mock-generator";
-import { HttpMethod } from "@/app/generated/prisma";
+import { HttpMethod, Prisma } from "@/app/generated/prisma/client";
 import { SchemaDefinition } from "@/lib/types";
+
+type JsonValue = Prisma.InputJsonValue;
 
 // ============================================
 // CORS HEADERS
@@ -222,9 +224,10 @@ async function handleStatefulRequest(
     }
 
     case "POST": {
+      const mockData = generateMockData(schema) as Record<string, unknown>;
       const newItem = {
         id: crypto.randomUUID(),
-        ...generateMockData(schema),
+        ...mockData,
         ...(typeof body === "object" && body !== null ? body : {}),
         createdAt: new Date().toISOString(),
       };
@@ -232,7 +235,7 @@ async function handleStatefulRequest(
 
       await prisma.endpoint.update({
         where: { id: endpoint.id },
-        data: { stateData },
+        data: { stateData: stateData as JsonValue },
       });
 
       return { data: newItem, status: 201 };
@@ -242,7 +245,7 @@ async function handleStatefulRequest(
       // Clear all state data
       await prisma.endpoint.update({
         where: { id: endpoint.id },
-        data: { stateData: [] },
+        data: { stateData: [] as JsonValue },
       });
 
       return { data: { message: "All records deleted" }, status: 200 };
@@ -287,7 +290,7 @@ async function handleStatefulItemRequest(
 
       await prisma.endpoint.update({
         where: { id: endpoint.id },
-        data: { stateData },
+        data: { stateData: stateData as JsonValue },
       });
 
       return { data: updatedItem, status: 200 };
@@ -299,7 +302,7 @@ async function handleStatefulItemRequest(
 
       await prisma.endpoint.update({
         where: { id: endpoint.id },
-        data: { stateData },
+        data: { stateData: stateData as JsonValue },
       });
 
       return { data: deletedItem, status: 200 };
