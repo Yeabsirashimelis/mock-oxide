@@ -1,0 +1,147 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getServerSession } from "@/lib/auth-server";
+import { getProjectBySlug } from "@/lib/db";
+import { DeleteProjectButton } from "@/components/projects/delete-project-button";
+import { EndpointList } from "@/components/projects/endpoint-list";
+
+interface ProjectPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { slug } = await params;
+  const session = await getServerSession();
+  const project = await getProjectBySlug(slug);
+
+  if (!project || project.userId !== session!.user.id) {
+    notFound();
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const apiUrl = `${baseUrl}/api/mock/${project.slug}`;
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Link
+              href="/dashboard"
+              className="text-zinc-400 hover:text-zinc-100 transition-colors"
+            >
+              Projects
+            </Link>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-100">{project.name}</span>
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-100">{project.name}</h1>
+          {project.description && (
+            <p className="text-zinc-400 mt-1">{project.description}</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/dashboard/projects/${project.slug}/endpoints/new`}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Endpoint
+          </Link>
+          <DeleteProjectButton projectId={project.id} projectSlug={project.slug} />
+        </div>
+      </div>
+
+      {/* API URL */}
+      <div className="mb-8 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+        <p className="text-sm text-zinc-400 mb-2">Base URL</p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+            {apiUrl}
+          </code>
+          <button
+            onClick={() => navigator.clipboard.writeText(apiUrl)}
+            className="px-3 py-2 text-sm text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-600 rounded transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-sm text-zinc-400 mb-1">Total Endpoints</p>
+          <p className="text-2xl font-bold text-zinc-100">
+            {project.endpoints.length}
+          </p>
+        </div>
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-sm text-zinc-400 mb-1">Active Endpoints</p>
+          <p className="text-2xl font-bold text-zinc-100">
+            {project.endpoints.filter((e) => e.enabled).length}
+          </p>
+        </div>
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-sm text-zinc-400 mb-1">Created</p>
+          <p className="text-sm text-zinc-300">
+            {new Date(project.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+
+      {/* Endpoints */}
+      <div>
+        <h2 className="text-lg font-semibold text-zinc-100 mb-4">Endpoints</h2>
+        {project.endpoints.length === 0 ? (
+          <div className="text-center py-16 bg-zinc-900 border border-zinc-800 rounded-lg">
+            <div className="w-16 h-16 mx-auto mb-4 bg-zinc-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl text-zinc-600">&lt;/&gt;</span>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-300 mb-2">
+              No endpoints yet
+            </h3>
+            <p className="text-zinc-500 mb-6">
+              Create your first endpoint to start serving mock data
+            </p>
+            <Link
+              href={`/dashboard/projects/${project.slug}/endpoints/new`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Create Endpoint
+            </Link>
+          </div>
+        ) : (
+          <EndpointList endpoints={project.endpoints} projectSlug={project.slug} />
+        )}
+      </div>
+    </div>
+  );
+}
