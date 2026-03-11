@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Endpoint } from "@/app/generated/prisma/client";
 
@@ -18,9 +19,36 @@ const methodColors: Record<string, string> = {
 };
 
 export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showDisabled, setShowDisabled] = useState(true);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+
+  const handleDuplicate = async (e: React.MouseEvent, endpointId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setDuplicating(endpointId);
+
+    try {
+      const response = await fetch(`/api/projects/${projectSlug}/endpoints/${endpointId}/duplicate`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to duplicate endpoint");
+      }
+    } catch (error) {
+      alert("Failed to duplicate endpoint");
+      console.error(error);
+    } finally {
+      setDuplicating(null);
+    }
+  };
 
   // Filter endpoints
   const filteredEndpoints = endpoints.filter((endpoint) => {
@@ -250,6 +278,44 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
               {endpoint.responseCode !== 200 && (
                 <span>{endpoint.responseCode}</span>
               )}
+              <button
+                onClick={(e) => handleDuplicate(e, endpoint.id)}
+                disabled={duplicating === endpoint.id}
+                className="ml-2 p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Duplicate endpoint"
+              >
+                {duplicating === endpoint.id ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="animate-spin"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 
