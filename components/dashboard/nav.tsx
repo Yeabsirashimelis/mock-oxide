@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 
 interface DashboardNavProps {
@@ -15,10 +15,18 @@ interface DashboardNavProps {
 
 export function DashboardNav({ user }: DashboardNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/");
+  };
+
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    return pathname?.startsWith(path);
   };
 
   return (
@@ -33,13 +41,21 @@ export function DashboardNav({ user }: DashboardNavProps) {
           <nav className="flex items-center gap-6">
             <Link
               href="/dashboard"
-              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+              className={`text-sm transition-colors ${
+                isActive("/dashboard")
+                  ? "text-blue-400 font-medium"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }`}
             >
               Projects
             </Link>
             <Link
               href="/dashboard/api-keys"
-              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+              className={`text-sm transition-colors ${
+                isActive("/dashboard/api-keys")
+                  ? "text-blue-400 font-medium"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }`}
             >
               API Keys
             </Link>
