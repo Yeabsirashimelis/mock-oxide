@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "@/lib/auth-server";
 import { getEndpoint } from "@/lib/db";
 import { EndpointForm } from "@/components/endpoints/endpoint-form";
+import { EndpointTabs } from "@/components/endpoints/endpoint-tabs";
 
 interface EditEndpointPageProps {
   params: Promise<{ slug: string; id: string }>;
@@ -25,10 +26,9 @@ export default async function EditEndpointPage({ params }: EditEndpointPageProps
         </p>
       </div>
 
-      <EndpointForm
-        mode="edit"
+      <EndpointTabs
         projectSlug={endpoint.project.slug}
-        initialData={endpoint}
+        endpoint={endpoint}
       />
     </div>
   );
