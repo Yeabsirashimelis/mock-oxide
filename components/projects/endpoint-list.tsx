@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { Endpoint } from "@/app/generated/prisma/client";
 
@@ -15,9 +18,133 @@ const methodColors: Record<string, string> = {
 };
 
 export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showDisabled, setShowDisabled] = useState(true);
+
+  // Filter endpoints
+  const filteredEndpoints = endpoints.filter((endpoint) => {
+    // Search filter
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch =
+      !searchQuery ||
+      endpoint.path.toLowerCase().includes(searchLower) ||
+      endpoint.name?.toLowerCase().includes(searchLower) ||
+      endpoint.description?.toLowerCase().includes(searchLower);
+
+    // Method filter
+    const matchesMethod = !selectedMethod || endpoint.method === selectedMethod;
+
+    // Enabled filter
+    const matchesEnabled = showDisabled || endpoint.enabled;
+
+    return matchesSearch && matchesMethod && matchesEnabled;
+  });
+
+  const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+  const methodCounts = methods.map((method) => ({
+    method,
+    count: endpoints.filter((e) => e.method === method).length,
+  }));
+
   return (
-    <div className="space-y-3">
-      {endpoints.map((endpoint) => (
+    <div className="space-y-4">
+      {/* Search and Filters */}
+      <div className="space-y-3">
+        {/* Search Bar */}
+        <div className="relative">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search endpoints by path, name, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Method Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-zinc-400">Filter by method:</span>
+          <button
+            onClick={() => setSelectedMethod(null)}
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+              selectedMethod === null
+                ? "bg-blue-600 text-white"
+                : "text-zinc-400 hover:text-zinc-100 border border-zinc-700"
+            }`}
+          >
+            All ({endpoints.length})
+          </button>
+          {methodCounts
+            .filter((m) => m.count > 0)
+            .map(({ method, count }) => (
+              <button
+                key={method}
+                onClick={() => setSelectedMethod(selectedMethod === method ? null : method)}
+                className={`px-3 py-1 text-xs font-medium rounded transition-colors border ${
+                  selectedMethod === method
+                    ? methodColors[method]
+                    : "text-zinc-400 hover:text-zinc-100 border-zinc-700"
+                }`}
+              >
+                {method} ({count})
+              </button>
+            ))}
+
+          <div className="ml-auto flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showDisabled}
+                onChange={(e) => setShowDisabled(e.target.checked)}
+                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+              />
+              Show disabled
+            </label>
+          </div>
+        </div>
+
+        {/* Results count */}
+        {(searchQuery || selectedMethod || !showDisabled) && (
+          <div className="text-sm text-zinc-500">
+            Showing {filteredEndpoints.length} of {endpoints.length} endpoints
+          </div>
+        )}
+      </div>
+
+      {/* Endpoint List */}
+      {filteredEndpoints.length === 0 ? (
+        <div className="text-center py-12 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-zinc-400">No endpoints match your filters</p>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedMethod(null);
+              setShowDisabled(true);
+            }}
+            className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+          >
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredEndpoints.map((endpoint) => (
         <Link
           key={endpoint.id}
           href={`/dashboard/projects/${projectSlug}/endpoints/${endpoint.id}`}
@@ -133,6 +260,8 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
           )}
         </Link>
       ))}
+        </div>
+      )}
     </div>
   );
 }
