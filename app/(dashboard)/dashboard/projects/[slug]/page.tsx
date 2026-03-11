@@ -107,14 +107,33 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </div>
 
-      {/* API URL */}
-      <div className="mb-8 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
-        <p className="text-sm text-zinc-400 mb-2">Base URL</p>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
-            {apiUrl}
-          </code>
-          <CopyButton text={apiUrl} />
+      {/* API URL & Documentation */}
+      <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-sm text-zinc-400 mb-2">Base URL</p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+              {apiUrl}
+            </code>
+            <CopyButton text={apiUrl} />
+          </div>
+        </div>
+
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <p className="text-sm text-zinc-400 mb-2">API Documentation</p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+              {baseUrl}/docs/{project.slug}
+            </code>
+            <CopyButton text={`${baseUrl}/docs/${project.slug}`} />
+            <Link
+              href={`/docs/${project.slug}`}
+              target="_blank"
+              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+            >
+              View
+            </Link>
+          </div>
         </div>
       </div>
 
