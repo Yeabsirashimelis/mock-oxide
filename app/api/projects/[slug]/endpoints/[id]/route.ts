@@ -50,6 +50,7 @@ export async function PATCH(
       stateful,
       authRequired,
       rateLimit,
+      corsOrigins,
       enabled,
     } = body;
 
@@ -68,6 +69,7 @@ export async function PATCH(
       stateful,
       authRequired,
       rateLimit,
+      corsOrigins,
       enabled,
     });
 

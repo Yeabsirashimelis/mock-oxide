@@ -46,6 +46,7 @@ export async function POST(
       stateful,
       authRequired,
       rateLimit,
+      corsOrigins,
       enabled,
     } = body;
 
@@ -71,6 +72,7 @@ export async function POST(
       stateful,
       authRequired,
       rateLimit,
+      corsOrigins,
     });
 
     // Update enabled status if provided

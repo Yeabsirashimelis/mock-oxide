@@ -85,6 +85,7 @@ export async function createEndpoint(
     stateful?: boolean;
     authRequired?: boolean;
     rateLimit?: number;
+    corsOrigins?: string[];
   }
 ) {
   return prisma.endpoint.create({
@@ -147,6 +148,7 @@ export async function updateEndpoint(
     stateData?: object;
     authRequired?: boolean;
     rateLimit?: number;
+    corsOrigins?: string[];
     enabled?: boolean;
   }
 ) {
@@ -157,6 +159,7 @@ export async function updateEndpoint(
       schema: data.schema,
       stateData: data.stateData,
       responseHeaders: data.responseHeaders,
+      corsOrigins: data.corsOrigins,
     },
   });
 }
