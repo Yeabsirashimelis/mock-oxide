@@ -77,6 +77,7 @@ export async function createEndpoint(
     schema: object;
     description?: string;
     responseCode?: number;
+    responseHeaders?: object | null;
     delay?: number;
     isArray?: boolean;
     arrayCount?: number;
@@ -137,6 +138,7 @@ export async function updateEndpoint(
     schema?: object;
     description?: string;
     responseCode?: number;
+    responseHeaders?: object | null;
     delay?: number;
     isArray?: boolean;
     arrayCount?: number;
@@ -154,6 +156,7 @@ export async function updateEndpoint(
       ...data,
       schema: data.schema,
       stateData: data.stateData,
+      responseHeaders: data.responseHeaders,
     },
   });
 }
