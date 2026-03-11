@@ -5,6 +5,7 @@ import { getProjectBySlug } from "@/lib/db";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
 import { EndpointList } from "@/components/projects/endpoint-list";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ExportProjectButton } from "@/components/projects/export-project-button";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -103,6 +104,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </svg>
             New Endpoint
           </Link>
+          <ExportProjectButton projectSlug={project.slug} />
           <DeleteProjectButton projectId={project.id} projectSlug={project.slug} />
         </div>
       </div>

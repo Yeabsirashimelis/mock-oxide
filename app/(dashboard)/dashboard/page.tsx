@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "@/lib/auth-server";
 import { getProjectsByUserId } from "@/lib/db";
+import { ImportProjectButton } from "@/components/projects/import-project-button";
 
 type ProjectWithCount = Awaited<ReturnType<typeof getProjectsByUserId>>[number];
 
@@ -18,25 +19,28 @@ export default async function DashboardPage() {
             Manage your mock API projects
           </p>
         </div>
-        <Link
-          href="/dashboard/projects/new"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="flex items-center gap-3">
+          <ImportProjectButton />
+          <Link
+            href="/dashboard/projects/new"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
           >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          New Project
-        </Link>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Project
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
