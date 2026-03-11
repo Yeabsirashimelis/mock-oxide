@@ -78,6 +78,7 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
     pagination: initialData?.pagination || false,
     stateful: initialData?.stateful || false,
     authRequired: initialData?.authRequired || false,
+    rateLimit: initialData?.rateLimit || null,
     enabled: initialData?.enabled ?? true,
   });
 
@@ -371,6 +372,31 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
+              Rate Limit (requests per minute, optional)
+            </label>
+            <input
+              name="rateLimit"
+              type="number"
+              min="1"
+              value={formData.rateLimit || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  rateLimit: value === "" ? null : Number(value),
+                }));
+                setError(null);
+              }}
+              placeholder="Unlimited"
+              className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Leave empty for unlimited requests. Example: 60 = max 60 requests per minute
+            </p>
           </div>
 
           <div className="space-y-3">

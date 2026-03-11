@@ -49,6 +49,7 @@ export async function PATCH(
       pagination,
       stateful,
       authRequired,
+      rateLimit,
       enabled,
     } = body;
 
@@ -66,6 +67,7 @@ export async function PATCH(
       pagination,
       stateful,
       authRequired,
+      rateLimit,
       enabled,
     });
 

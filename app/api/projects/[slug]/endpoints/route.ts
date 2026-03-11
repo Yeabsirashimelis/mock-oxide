@@ -45,6 +45,7 @@ export async function POST(
       pagination,
       stateful,
       authRequired,
+      rateLimit,
       enabled,
     } = body;
 
@@ -69,6 +70,7 @@ export async function POST(
       pagination,
       stateful,
       authRequired,
+      rateLimit,
     });
 
     // Update enabled status if provided
