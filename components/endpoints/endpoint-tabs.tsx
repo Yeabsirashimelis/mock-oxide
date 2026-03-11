@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Endpoint } from "@/app/generated/prisma/client";
 import { EndpointForm } from "./endpoint-form";
 import { EndpointTester } from "./endpoint-tester";
+import { EndpointLogs } from "./endpoint-logs";
 
 interface EndpointTabsProps {
   projectSlug: string;
@@ -11,7 +12,7 @@ interface EndpointTabsProps {
 }
 
 export function EndpointTabs({ projectSlug, endpoint }: EndpointTabsProps) {
-  const [activeTab, setActiveTab] = useState<"configure" | "test">("configure");
+  const [activeTab, setActiveTab] = useState<"configure" | "test" | "logs">("configure");
 
   return (
     <div>
@@ -37,6 +38,16 @@ export function EndpointTabs({ projectSlug, endpoint }: EndpointTabsProps) {
         >
           Test
         </button>
+        <button
+          onClick={() => setActiveTab("logs")}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === "logs"
+              ? "border-blue-500 text-blue-400"
+              : "border-transparent text-zinc-400 hover:text-zinc-100"
+          }`}
+        >
+          Logs
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -59,6 +70,10 @@ export function EndpointTabs({ projectSlug, endpoint }: EndpointTabsProps) {
             }}
           />
         </div>
+      )}
+
+      {activeTab === "logs" && (
+        <EndpointLogs projectSlug={projectSlug} endpointId={endpoint.id} />
       )}
     </div>
   );

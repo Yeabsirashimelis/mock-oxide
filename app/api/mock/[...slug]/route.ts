@@ -143,7 +143,8 @@ async function logRequest(
   path: string,
   req: NextRequest,
   statusCode: number,
-  startTime: number
+  startTime: number,
+  body?: unknown
 ) {
   try {
     const duration = Date.now() - startTime;
@@ -162,6 +163,7 @@ async function logRequest(
           "content-type": headers["content-type"],
           origin: headers["origin"],
         },
+        body: body && typeof body === "object" ? body : undefined,
         statusCode,
         duration,
         ip: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || undefined,
@@ -367,10 +369,20 @@ async function handleRequest(
 
     const corsHeaders = getCorsHeaders(origin, endpoint.corsOrigins);
 
+    // Parse request body for POST/PUT/PATCH
+    let body: unknown;
+    if (["POST", "PUT", "PATCH"].includes(method)) {
+      try {
+        body = await req.json();
+      } catch {
+        // No body or invalid JSON - that's okay
+      }
+    }
+
     // Rate limiting
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     if (!checkRateLimit(endpoint.id, endpoint.rateLimit, ip)) {
-      logRequest(endpoint.id, method, endpointPath, req, 429, startTime);
+      logRequest(endpoint.id, method, endpointPath, req, 429, startTime, body);
       return errorResponse(
         "Rate limit exceeded",
         429,
@@ -383,7 +395,7 @@ async function handleRequest(
       const apiKey = req.headers.get("x-api-key") || req.headers.get("authorization")?.replace("Bearer ", "");
 
       if (!apiKey) {
-        logRequest(endpoint.id, method, endpointPath, req, 401, startTime);
+        logRequest(endpoint.id, method, endpointPath, req, 401, startTime, body);
         return errorResponse("API key required", 401, corsHeaders);
       }
 
@@ -392,7 +404,7 @@ async function handleRequest(
       });
 
       if (!validKey || (validKey.expiresAt && validKey.expiresAt < new Date())) {
-        logRequest(endpoint.id, method, endpointPath, req, 401, startTime);
+        logRequest(endpoint.id, method, endpointPath, req, 401, startTime, body);
         return errorResponse("Invalid or expired API key", 401, corsHeaders);
       }
 
@@ -401,16 +413,6 @@ async function handleRequest(
         where: { id: validKey.id },
         data: { lastUsed: new Date(), usageCount: { increment: 1 } },
       }).catch(console.error);
-    }
-
-    // Parse request body for POST/PUT/PATCH
-    let body: unknown;
-    if (["POST", "PUT", "PATCH"].includes(method)) {
-      try {
-        body = await req.json();
-      } catch {
-        // No body or invalid JSON - that's okay
-      }
     }
 
     // Apply delay if configured
@@ -435,7 +437,7 @@ async function handleRequest(
       if (isUuid && pathParts.length > 1) {
         const result = await handleStatefulItemRequest(endpoint, method, lastPart, body);
         if (!result) {
-          logRequest(endpoint.id, method, endpointPath, req, 404, startTime);
+          logRequest(endpoint.id, method, endpointPath, req, 404, startTime, body);
           return errorResponse("Item not found", 404, corsHeaders);
         }
         responseData = result.data;
@@ -472,7 +474,7 @@ async function handleRequest(
     }
 
     // Log request
-    logRequest(endpoint.id, method, endpointPath, req, statusCode, startTime);
+    logRequest(endpoint.id, method, endpointPath, req, statusCode, startTime, body);
 
     return jsonResponse(responseData, statusCode, responseHeaders);
   } catch (error) {
