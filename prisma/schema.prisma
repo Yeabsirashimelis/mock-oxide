@@ -109,6 +109,7 @@ model Endpoint {
   schema          Json
   responseCode    Int      @default(200)
   responseHeaders Json?
+  scenarios       Json?                       // Conditional response scenarios
 
   // Behavior
   delay           Int      @default(0)        // Response delay in ms

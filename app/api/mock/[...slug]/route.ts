@@ -204,6 +204,70 @@ function checkRateLimit(endpointId: string, limit: number | null, ip: string): b
 }
 
 // ============================================
+// RESPONSE SCENARIOS
+// ============================================
+
+interface Condition {
+  type: "query" | "header";
+  key: string;
+  operator: "equals" | "contains" | "exists";
+  value: string;
+}
+
+interface Scenario {
+  name: string;
+  conditions: Condition[];
+  response: {
+    statusCode: number;
+    body: unknown;
+    delay?: number;
+  };
+}
+
+function checkScenarioConditions(
+  scenario: Scenario,
+  req: NextRequest
+): boolean {
+  return scenario.conditions.every((condition) => {
+    let actualValue: string | null = null;
+
+    if (condition.type === "query") {
+      actualValue = req.nextUrl.searchParams.get(condition.key);
+    } else if (condition.type === "header") {
+      actualValue = req.headers.get(condition.key);
+    }
+
+    switch (condition.operator) {
+      case "equals":
+        return actualValue === condition.value;
+      case "contains":
+        return actualValue !== null && actualValue.includes(condition.value);
+      case "exists":
+        return actualValue !== null;
+      default:
+        return false;
+    }
+  });
+}
+
+function findMatchingScenario(
+  scenarios: Scenario[] | null | undefined,
+  req: NextRequest
+): Scenario | null {
+  if (!scenarios || !Array.isArray(scenarios) || scenarios.length === 0) {
+    return null;
+  }
+
+  for (const scenario of scenarios) {
+    if (checkScenarioConditions(scenario, req)) {
+      return scenario;
+    }
+  }
+
+  return null;
+}
+
+// ============================================
 // STATEFUL DATA HANDLING
 // ============================================
 
@@ -413,6 +477,43 @@ async function handleRequest(
         where: { id: validKey.id },
         data: { lastUsed: new Date(), usageCount: { increment: 1 } },
       }).catch(console.error);
+    }
+
+    // Check for matching scenario
+    const matchingScenario = findMatchingScenario(
+      endpoint.scenarios as Scenario[] | null,
+      req
+    );
+
+    if (matchingScenario) {
+      // Apply scenario-specific delay or endpoint delay
+      const scenarioDelay = matchingScenario.response.delay ?? endpoint.delay;
+      if (scenarioDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, scenarioDelay));
+      }
+
+      // Add custom response headers
+      const responseHeaders: Record<string, string> = { ...corsHeaders };
+      if (endpoint.responseHeaders && typeof endpoint.responseHeaders === "object") {
+        Object.assign(responseHeaders, endpoint.responseHeaders);
+      }
+
+      // Log request
+      logRequest(
+        endpoint.id,
+        method,
+        endpointPath,
+        req,
+        matchingScenario.response.statusCode,
+        startTime,
+        body
+      );
+
+      return jsonResponse(
+        matchingScenario.response.body,
+        matchingScenario.response.statusCode,
+        responseHeaders
+      );
     }
 
     // Apply delay if configured

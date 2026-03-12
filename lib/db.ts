@@ -78,6 +78,7 @@ export async function createEndpoint(
     description?: string;
     responseCode?: number;
     responseHeaders?: object | null;
+    scenarios?: object | null;
     delay?: number;
     isArray?: boolean;
     arrayCount?: number;
@@ -90,8 +91,22 @@ export async function createEndpoint(
 ) {
   return prisma.endpoint.create({
     data: {
-      ...data,
+      name: data.name,
+      path: data.path,
+      method: data.method,
       schema: data.schema,
+      description: data.description,
+      responseCode: data.responseCode,
+      responseHeaders: data.responseHeaders ?? undefined,
+      scenarios: data.scenarios ?? undefined,
+      delay: data.delay,
+      isArray: data.isArray,
+      arrayCount: data.arrayCount,
+      pagination: data.pagination,
+      stateful: data.stateful,
+      authRequired: data.authRequired,
+      rateLimit: data.rateLimit,
+      corsOrigins: data.corsOrigins,
       projectId,
     },
   });
@@ -140,6 +155,7 @@ export async function updateEndpoint(
     description?: string;
     responseCode?: number;
     responseHeaders?: object | null;
+    scenarios?: object | null;
     delay?: number;
     isArray?: boolean;
     arrayCount?: number;
@@ -158,7 +174,8 @@ export async function updateEndpoint(
       ...data,
       schema: data.schema,
       stateData: data.stateData,
-      responseHeaders: data.responseHeaders,
+      responseHeaders: data.responseHeaders ?? undefined,
+      scenarios: data.scenarios ?? undefined,
       corsOrigins: data.corsOrigins,
     },
   });

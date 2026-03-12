@@ -97,6 +97,28 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
     initialData?.corsOrigins || []
   );
 
+  // Response scenarios state
+  interface Condition {
+    type: "query" | "header";
+    key: string;
+    operator: "equals" | "contains" | "exists";
+    value: string;
+  }
+
+  interface Scenario {
+    name: string;
+    conditions: Condition[];
+    response: {
+      statusCode: number;
+      body: string;
+      delay?: number;
+    };
+  }
+
+  const [scenarios, setScenarios] = useState<Scenario[]>(
+    (initialData?.scenarios as unknown as Scenario[]) || []
+  );
+
   // Fetch user's templates
   useEffect(() => {
     async function fetchTemplates() {
@@ -242,6 +264,90 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
     setCorsOrigins((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Scenario handlers
+  const handleAddScenario = () => {
+    setScenarios((prev) => [
+      ...prev,
+      {
+        name: `Scenario ${prev.length + 1}`,
+        conditions: [{ type: "query", key: "", operator: "equals", value: "" }],
+        response: {
+          statusCode: 400,
+          body: '{ "error": "Bad request" }',
+        },
+      },
+    ]);
+  };
+
+  const handleRemoveScenario = (index: number) => {
+    setScenarios((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleScenarioNameChange = (index: number, name: string) => {
+    setScenarios((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], name };
+      return updated;
+    });
+  };
+
+  const handleScenarioResponseChange = (
+    index: number,
+    field: "statusCode" | "body" | "delay",
+    value: string | number
+  ) => {
+    setScenarios((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        response: { ...updated[index].response, [field]: value },
+      };
+      return updated;
+    });
+  };
+
+  const handleAddCondition = (scenarioIndex: number) => {
+    setScenarios((prev) => {
+      const updated = [...prev];
+      updated[scenarioIndex] = {
+        ...updated[scenarioIndex],
+        conditions: [
+          ...updated[scenarioIndex].conditions,
+          { type: "query", key: "", operator: "equals", value: "" },
+        ],
+      };
+      return updated;
+    });
+  };
+
+  const handleRemoveCondition = (scenarioIndex: number, conditionIndex: number) => {
+    setScenarios((prev) => {
+      const updated = [...prev];
+      updated[scenarioIndex] = {
+        ...updated[scenarioIndex],
+        conditions: updated[scenarioIndex].conditions.filter(
+          (_, i) => i !== conditionIndex
+        ),
+      };
+      return updated;
+    });
+  };
+
+  const handleConditionChange = (
+    scenarioIndex: number,
+    conditionIndex: number,
+    field: keyof Condition,
+    value: string
+  ) => {
+    setScenarios((prev) => {
+      const updated = [...prev];
+      const conditions = [...updated[scenarioIndex].conditions];
+      conditions[conditionIndex] = { ...conditions[conditionIndex], [field]: value };
+      updated[scenarioIndex] = { ...updated[scenarioIndex], conditions };
+      return updated;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -267,12 +373,31 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
       // Filter out empty CORS origins
       const filteredCorsOrigins = corsOrigins.filter((origin) => origin.trim() !== "");
 
+      // Filter out scenarios with empty conditions
+      const validScenarios = scenarios
+        .filter((s) => s.name.trim() && s.conditions.some((c) => c.key.trim()))
+        .map((s) => ({
+          ...s,
+          conditions: s.conditions.filter((c) => c.key.trim()),
+          response: {
+            ...s.response,
+            body: (() => {
+              try {
+                return JSON.parse(s.response.body);
+              } catch {
+                return s.response.body;
+              }
+            })(),
+          },
+        }));
+
       const payload = {
         ...formData,
         schema: parsedSchema,
         path: formData.path.startsWith("/") ? formData.path : `/${formData.path}`,
         responseHeaders: Object.keys(responseHeaders).length > 0 ? responseHeaders : null,
         corsOrigins: filteredCorsOrigins,
+        scenarios: validScenarios.length > 0 ? validScenarios : null,
       };
 
       const url =
@@ -623,6 +748,180 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
             <p className="text-xs text-zinc-500 mt-2">
               Leave empty to allow all origins. Add specific origins like https://example.com to restrict access.
             </p>
+          </div>
+
+          {/* Response Scenarios */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-zinc-300">
+                Response Scenarios (optional)
+              </label>
+              <button
+                type="button"
+                onClick={handleAddScenario}
+                className="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+              >
+                + Add Scenario
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500 mb-3">
+              Return different responses based on query params or headers. Example: ?fail=true returns an error.
+            </p>
+
+            {scenarios.length > 0 ? (
+              <div className="space-y-4">
+                {scenarios.map((scenario, sIndex) => (
+                  <div
+                    key={sIndex}
+                    className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="text"
+                        value={scenario.name}
+                        onChange={(e) => handleScenarioNameChange(sIndex, e.target.value)}
+                        placeholder="Scenario name"
+                        className="px-3 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveScenario(sIndex)}
+                        className="text-zinc-400 hover:text-red-400 transition-colors"
+                        title="Remove scenario"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Conditions */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-zinc-400">Conditions (all must match):</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddCondition(sIndex)}
+                          className="text-xs text-purple-400 hover:text-purple-300"
+                        >
+                          + Add condition
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {scenario.conditions.map((condition, cIndex) => (
+                          <div key={cIndex} className="flex items-center gap-2">
+                            <select
+                              value={condition.type}
+                              onChange={(e) =>
+                                handleConditionChange(sIndex, cIndex, "type", e.target.value)
+                              }
+                              className="px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            >
+                              <option value="query">Query</option>
+                              <option value="header">Header</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={condition.key}
+                              onChange={(e) =>
+                                handleConditionChange(sIndex, cIndex, "key", e.target.value)
+                              }
+                              placeholder={condition.type === "query" ? "param" : "Header-Name"}
+                              className="w-24 px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            />
+                            <select
+                              value={condition.operator}
+                              onChange={(e) =>
+                                handleConditionChange(sIndex, cIndex, "operator", e.target.value)
+                              }
+                              className="px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            >
+                              <option value="equals">=</option>
+                              <option value="contains">contains</option>
+                              <option value="exists">exists</option>
+                            </select>
+                            {condition.operator !== "exists" && (
+                              <input
+                                type="text"
+                                value={condition.value}
+                                onChange={(e) =>
+                                  handleConditionChange(sIndex, cIndex, "value", e.target.value)
+                                }
+                                placeholder="value"
+                                className="flex-1 px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                              />
+                            )}
+                            {scenario.conditions.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCondition(sIndex, cIndex)}
+                                className="text-zinc-500 hover:text-red-400 text-xs"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Response */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-zinc-400 block mb-1">Status Code</label>
+                        <input
+                          type="number"
+                          value={scenario.response.statusCode}
+                          onChange={(e) =>
+                            handleScenarioResponseChange(sIndex, "statusCode", Number(e.target.value))
+                          }
+                          className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-400 block mb-1">Delay (ms)</label>
+                        <input
+                          type="number"
+                          value={scenario.response.delay || 0}
+                          onChange={(e) =>
+                            handleScenarioResponseChange(sIndex, "delay", Number(e.target.value))
+                          }
+                          className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Response Body (JSON)</label>
+                      <textarea
+                        value={scenario.response.body}
+                        onChange={(e) =>
+                          handleScenarioResponseChange(sIndex, "body", e.target.value)
+                        }
+                        rows={3}
+                        className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-zinc-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500 italic">
+                No scenarios configured. Add scenarios to return different responses based on conditions.
+              </p>
+            )}
           </div>
         </div>
 
