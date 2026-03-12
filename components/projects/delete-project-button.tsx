@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 interface DeleteProjectButtonProps {
   projectId: string;
   projectSlug: string;
+  variant?: "default" | "danger";
 }
 
-export function DeleteProjectButton({ projectId, projectSlug }: DeleteProjectButtonProps) {
+export function DeleteProjectButton({ projectId, projectSlug, variant = "default" }: DeleteProjectButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -40,9 +41,13 @@ export function DeleteProjectButton({ projectId, projectSlug }: DeleteProjectBut
     return (
       <button
         onClick={() => setShowConfirm(true)}
-        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-colors"
+        className={
+          variant === "danger"
+            ? "px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+            : "px-4 py-2 text-sm text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-colors"
+        }
       >
-        Delete
+        Delete Project
       </button>
     );
   }
