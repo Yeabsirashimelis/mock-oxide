@@ -3,10 +3,13 @@ import { getServerSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
-  const session = await getServerSession();
-
-  if (session) {
-    redirect("/dashboard");
+  try {
+    const session = await getServerSession();
+    if (session) {
+      redirect("/dashboard");
+    }
+  } catch {
+    // Session check failed, continue to show landing page
   }
 
   return (
