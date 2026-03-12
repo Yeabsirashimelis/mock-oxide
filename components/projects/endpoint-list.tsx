@@ -24,6 +24,111 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showDisabled, setShowDisabled] = useState(true);
   const [duplicating, setDuplicating] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Selection handlers
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredEndpoints.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredEndpoints.map((e) => e.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Bulk action handlers
+  const handleBulkEnable = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const response = await fetch(`/api/projects/${projectSlug}/endpoints/bulk`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "enable" }),
+      });
+      if (response.ok) {
+        clearSelection();
+        router.refresh();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to enable endpoints");
+      }
+    } catch (error) {
+      alert("Failed to enable endpoints");
+      console.error(error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDisable = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const response = await fetch(`/api/projects/${projectSlug}/endpoints/bulk`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "disable" }),
+      });
+      if (response.ok) {
+        clearSelection();
+        router.refresh();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to disable endpoints");
+      }
+    } catch (error) {
+      alert("Failed to disable endpoints");
+      console.error(error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} endpoint(s)? This action cannot be undone.`)) {
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      const response = await fetch(`/api/projects/${projectSlug}/endpoints/bulk`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (response.ok) {
+        clearSelection();
+        router.refresh();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to delete endpoints");
+      }
+    } catch (error) {
+      alert("Failed to delete endpoints");
+      console.error(error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
 
   const handleDuplicate = async (e: React.MouseEvent, endpointId: string) => {
     e.preventDefault();
@@ -155,6 +260,60 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
         )}
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {filteredEndpoints.length > 0 && (
+        <div className="flex items-center gap-4 p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedIds.size === filteredEndpoints.length && filteredEndpoints.length > 0}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 bg-zinc-800 border-zinc-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-sm text-zinc-400">
+              {selectedIds.size > 0
+                ? `${selectedIds.size} selected`
+                : "Select all"}
+            </span>
+          </label>
+
+          {selectedIds.size > 0 && (
+            <>
+              <div className="h-4 w-px bg-zinc-700" />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkEnable}
+                  disabled={bulkLoading}
+                  className="px-3 py-1.5 text-xs font-medium text-green-400 hover:text-green-300 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded transition-colors disabled:opacity-50"
+                >
+                  Enable
+                </button>
+                <button
+                  onClick={handleBulkDisable}
+                  disabled={bulkLoading}
+                  className="px-3 py-1.5 text-xs font-medium text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20 rounded transition-colors disabled:opacity-50"
+                >
+                  Disable
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkLoading}
+                  className="px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded transition-colors disabled:opacity-50"
+                >
+                  Delete
+                </button>
+              </div>
+              <button
+                onClick={clearSelection}
+                className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                Clear selection
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Endpoint List */}
       {filteredEndpoints.length === 0 ? (
         <div className="text-center py-12 bg-zinc-900 border border-zinc-800 rounded-lg">
@@ -173,11 +332,25 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
       ) : (
         <div className="space-y-3">
           {filteredEndpoints.map((endpoint) => (
-        <Link
+        <div
           key={endpoint.id}
-          href={`/dashboard/projects/${projectSlug}/endpoints/${endpoint.id}`}
-          className="block p-4 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-lg transition-colors group"
+          className={`flex items-center gap-3 p-4 bg-zinc-900 border rounded-lg transition-colors group ${
+            selectedIds.has(endpoint.id)
+              ? "border-blue-500/50 bg-blue-500/5"
+              : "border-zinc-800 hover:border-zinc-700"
+          }`}
         >
+          <input
+            type="checkbox"
+            checked={selectedIds.has(endpoint.id)}
+            onClick={(e) => toggleSelect(endpoint.id, e)}
+            onChange={() => {}}
+            className="w-4 h-4 bg-zinc-800 border-zinc-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer flex-shrink-0"
+          />
+          <Link
+            href={`/dashboard/projects/${projectSlug}/endpoints/${endpoint.id}`}
+            className="flex-1 min-w-0"
+          >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
               <span
@@ -345,7 +518,8 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
               {endpoint.description}
             </p>
           )}
-        </Link>
+          </Link>
+        </div>
       ))}
         </div>
       )}
