@@ -1,4 +1,4 @@
-import { HttpMethod } from "@/app/generated/prisma";
+import { HttpMethod } from "@/app/generated/prisma/client";
 
 interface OpenAPISchema {
   type?: string;

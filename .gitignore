@@ -43,5 +43,12 @@ next-env.d.ts
 # project docs
 FEATURES.md
 
+# test reports and scripts
+TEST-REPORT.md
+FUNCTIONAL-TEST-RESULTS.md
+test-e2e.mjs
+test-functional.js
+test-manual.sh
+
 /app/generated/prisma
 .claude

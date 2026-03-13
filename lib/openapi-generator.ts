@@ -1,4 +1,4 @@
-import { Endpoint, HttpMethod } from "@/app/generated/prisma";
+import { Endpoint, HttpMethod } from "@/app/generated/prisma/client";
 
 export interface SchemaDefinition {
   [key: string]: {

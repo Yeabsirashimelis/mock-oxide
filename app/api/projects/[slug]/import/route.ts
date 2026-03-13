@@ -99,7 +99,19 @@ export async function POST(
     // Create endpoints
     const created = await prisma.endpoint.createMany({
       data: endpointsToCreate.map((endpoint) => ({
-        ...endpoint,
+        name: endpoint.name,
+        path: endpoint.path,
+        method: endpoint.method,
+        description: endpoint.description,
+        schema: endpoint.schema as any,
+        responseCode: endpoint.responseCode,
+        responseHeaders: endpoint.responseHeaders as any,
+        isArray: endpoint.isArray,
+        arrayCount: endpoint.arrayCount,
+        pagination: endpoint.pagination,
+        authRequired: endpoint.authRequired,
+        delay: endpoint.delay,
+        validateRequest: endpoint.validateRequest,
         projectId: project.id,
         enabled: true,
       })),

@@ -23,8 +23,8 @@ export function DocsEndpoint({ endpoint, projectSlug }: DocsEndpointProps) {
 
   // Generate example response
   const exampleData = endpoint.isArray
-    ? generateMockArray(endpoint.schema as Record<string, unknown>, Math.min(endpoint.arrayCount, 3))
-    : generateMockData(endpoint.schema as Record<string, unknown>);
+    ? generateMockArray(endpoint.schema as any, Math.min(endpoint.arrayCount, 3))
+    : generateMockData(endpoint.schema as any);
 
   const exampleJson = JSON.stringify(exampleData, null, 2);
 
