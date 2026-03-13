@@ -6,6 +6,7 @@ import { DeleteProjectButton } from "@/components/projects/delete-project-button
 import { EndpointList } from "@/components/projects/endpoint-list";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ExportProjectButton } from "@/components/projects/export-project-button";
+import { ImportOpenAPIButton } from "@/components/projects/import-openapi-button";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -85,6 +86,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </svg>
             Analytics
           </Link>
+          <ImportOpenAPIButton projectSlug={project.slug} />
           <Link
             href={`/dashboard/projects/${project.slug}/endpoints/new`}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
