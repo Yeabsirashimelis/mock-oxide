@@ -82,6 +82,7 @@ export async function POST(
         authRequired: endpoint.authRequired,
         rateLimit: endpoint.rateLimit,
         corsOrigins: endpoint.corsOrigins,
+        validateRequest: endpoint.validateRequest,
         enabled: endpoint.enabled,
         projectId: endpoint.projectId,
       },

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { generateMockData, generateMockArray, generatePaginatedResponse } from "@/lib/mock-generator";
 import { HttpMethod, Prisma } from "@/app/generated/prisma/client";
 import { SchemaDefinition } from "@/lib/types";
+import { validateRequestBody } from "@/lib/validator";
 
 type JsonValue = Prisma.InputJsonValue;
 
@@ -477,6 +478,24 @@ async function handleRequest(
         where: { id: validKey.id },
         data: { lastUsed: new Date(), usageCount: { increment: 1 } },
       }).catch(console.error);
+    }
+
+    // Request body validation
+    if (endpoint.validateRequest && ["POST", "PUT", "PATCH"].includes(method) && body) {
+      const schema = endpoint.schema as SchemaDefinition;
+      const validation = validateRequestBody(body, schema);
+
+      if (!validation.valid) {
+        logRequest(endpoint.id, method, endpointPath, req, 400, startTime, body);
+        return jsonResponse(
+          {
+            error: "Validation failed",
+            errors: validation.errors,
+          },
+          400,
+          corsHeaders
+        );
+      }
     }
 
     // Check for matching scenario

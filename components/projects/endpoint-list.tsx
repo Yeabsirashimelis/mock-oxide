@@ -472,6 +472,25 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
                   {endpoint.scenarios.length} scenario{endpoint.scenarios.length > 1 ? "s" : ""}
                 </span>
               )}
+              {endpoint.validateRequest && (
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 12l2 2 4-4" />
+                    <path d="M21 12c0 1.66-.4 3.22-1.1 4.6a9 9 0 1 1 0-9.2c.7 1.38 1.1 2.94 1.1 4.6z" />
+                  </svg>
+                  Validated
+                </span>
+              )}
               <button
                 onClick={(e) => handleDuplicate(e, endpoint.id)}
                 disabled={duplicating === endpoint.id}

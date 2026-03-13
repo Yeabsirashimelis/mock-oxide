@@ -124,6 +124,9 @@ model Endpoint {
   rateLimit       Int?                        // Requests per minute
   corsOrigins     String[] @default([])       // Allowed origins (empty = all)
 
+  // Validation
+  validateRequest Boolean  @default(false)    // Validate request body against schema
+
   // Status
   enabled         Boolean  @default(true)
 

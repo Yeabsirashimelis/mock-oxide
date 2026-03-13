@@ -52,6 +52,7 @@ export async function PATCH(
       authRequired,
       rateLimit,
       corsOrigins,
+      validateRequest,
       enabled,
     } = body;
 
@@ -72,6 +73,7 @@ export async function PATCH(
       authRequired,
       rateLimit,
       corsOrigins,
+      validateRequest,
       enabled,
     });
 

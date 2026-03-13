@@ -48,6 +48,7 @@ export async function POST(
       authRequired,
       rateLimit,
       corsOrigins,
+      validateRequest,
       enabled,
     } = body;
 
@@ -75,6 +76,7 @@ export async function POST(
       authRequired,
       rateLimit,
       corsOrigins,
+      validateRequest,
     });
 
     // Update enabled status if provided

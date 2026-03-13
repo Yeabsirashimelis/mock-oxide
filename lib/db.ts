@@ -87,6 +87,7 @@ export async function createEndpoint(
     authRequired?: boolean;
     rateLimit?: number;
     corsOrigins?: string[];
+    validateRequest?: boolean;
   }
 ) {
   return prisma.endpoint.create({
@@ -165,6 +166,7 @@ export async function updateEndpoint(
     authRequired?: boolean;
     rateLimit?: number;
     corsOrigins?: string[];
+    validateRequest?: boolean;
     enabled?: boolean;
   }
 ) {

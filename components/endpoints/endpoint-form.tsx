@@ -79,6 +79,7 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
     stateful: initialData?.stateful || false,
     authRequired: initialData?.authRequired || false,
     rateLimit: initialData?.rateLimit || null,
+    validateRequest: initialData?.validateRequest || false,
     enabled: initialData?.enabled ?? true,
   });
 
@@ -610,6 +611,17 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-zinc-300">Require API key</span>
+            </label>
+
+            <label className="flex items-center gap-3">
+              <input
+                name="validateRequest"
+                type="checkbox"
+                checked={formData.validateRequest}
+                onChange={handleChange}
+                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm text-zinc-300">Validate request body</span>
             </label>
 
             <label className="flex items-center gap-3">
