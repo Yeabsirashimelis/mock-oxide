@@ -31,6 +31,24 @@ export function DocsHeader({ project, apiBaseUrl }: DocsHeaderProps) {
               </code>
               <CopyButton text={apiBaseUrl} />
             </div>
+            <div className="flex items-center gap-2">
+              <a
+                href={`/api/projects/${project.slug}/openapi?format=json`}
+                download={`${project.slug}-openapi.json`}
+                className="px-3 py-2 text-sm text-zinc-300 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                title="Download OpenAPI JSON"
+              >
+                JSON
+              </a>
+              <a
+                href={`/api/projects/${project.slug}/openapi?format=yaml`}
+                download={`${project.slug}-openapi.yaml`}
+                className="px-3 py-2 text-sm text-zinc-300 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                title="Download OpenAPI YAML"
+              >
+                YAML
+              </a>
+            </div>
             <Link
               href="/"
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"

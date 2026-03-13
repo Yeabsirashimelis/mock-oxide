@@ -129,6 +129,32 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">OpenAPI Specification</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-zinc-300 text-sm">
+                  Export your API as OpenAPI 3.0 spec
+                </div>
+                <a
+                  href={`/api/projects/${project.slug}/openapi?format=json`}
+                  download={`${project.slug}-openapi.json`}
+                  className="px-3 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded transition-colors"
+                >
+                  JSON
+                </a>
+                <a
+                  href={`/api/projects/${project.slug}/openapi?format=yaml`}
+                  download={`${project.slug}-openapi.yaml`}
+                  className="px-3 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded transition-colors"
+                >
+                  YAML
+                </a>
+              </div>
+              <p className="text-xs text-zinc-500 mt-1">
+                Import into Postman, Insomnia, Swagger Editor, or any OpenAPI-compatible tool.
+              </p>
+            </div>
+
             <div className="pt-4 border-t border-zinc-800 grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-zinc-500">Created:</span>

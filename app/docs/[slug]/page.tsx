@@ -77,9 +77,14 @@ export default async function ProjectDocsPage({ params }: DocsPageProps) {
                 {project.description ||
                   `Welcome to the ${project.name} API documentation. This API provides mock data endpoints for testing and development.`}
               </p>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-4">
                 <p className="text-sm text-zinc-400 mb-2">Base URL:</p>
                 <code className="text-sm font-mono text-blue-400">{apiBaseUrl}</code>
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <p className="text-sm text-blue-300">
+                  <strong>OpenAPI 3.0 Compatible:</strong> This documentation is auto-generated from an OpenAPI specification. Export the spec using the JSON/YAML buttons above to import into tools like Postman, Insomnia, or Swagger Editor.
+                </p>
               </div>
             </section>
 
