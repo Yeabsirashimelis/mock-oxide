@@ -523,6 +523,44 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <div className="flex items-center gap-1 mt-2">
+                <span className="text-xs text-zinc-500 mr-1">Presets:</span>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, delay: 0 }))}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                >
+                  Instant
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, delay: 200 }))}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                >
+                  Fast (200ms)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, delay: 500 }))}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                >
+                  Normal (500ms)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, delay: 2000 }))}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                >
+                  Slow (2s)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, delay: 5000 }))}
+                  className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                >
+                  Very Slow (5s)
+                </button>
+              </div>
             </div>
           </div>
 
