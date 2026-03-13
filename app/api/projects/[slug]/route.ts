@@ -30,22 +30,33 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, description } = body;
+    const { name, description, defaultHeaders } = body;
 
-    if (!name || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Project name is required" },
-        { status: 400 }
-      );
+    // Build update data object
+    const updateData: any = {};
+
+    if (name !== undefined) {
+      if (!name || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Project name is required" },
+          { status: 400 }
+        );
+      }
+      updateData.name = name.trim();
+    }
+
+    if (description !== undefined) {
+      updateData.description = description?.trim() || null;
+    }
+
+    if (defaultHeaders !== undefined) {
+      updateData.defaultHeaders = defaultHeaders;
     }
 
     // Update project
     const updated = await prisma.project.update({
       where: { id: project.id },
-      data: {
-        name: name.trim(),
-        description: description?.trim() || null,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(updated);

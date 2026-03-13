@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "@/lib/auth-server";
 import prisma from "@/lib/prisma";
 import { ProjectSettingsForm } from "@/components/projects/project-settings-form";
+import { GlobalHeadersForm } from "@/components/projects/global-headers-form";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
 import { CopyButton } from "@/components/ui/copy-button";
 
@@ -21,6 +22,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       name: true,
       slug: true,
       description: true,
+      defaultHeaders: true,
       userId: true,
       createdAt: true,
       updatedAt: true,
@@ -71,6 +73,15 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
               name: project.name,
               description: project.description || "",
             }}
+          />
+        </section>
+
+        {/* Global Headers */}
+        <section className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <h2 className="text-lg font-semibold text-zinc-100 mb-4">Global Response Headers</h2>
+          <GlobalHeadersForm
+            projectSlug={project.slug}
+            initialHeaders={(project.defaultHeaders as Record<string, string>) || {}}
           />
         </section>
 

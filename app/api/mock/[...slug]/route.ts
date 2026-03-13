@@ -419,7 +419,7 @@ async function handleRequest(
       },
       include: {
         project: {
-          select: { id: true, slug: true, name: true },
+          select: { id: true, slug: true, name: true, defaultHeaders: true },
         },
       },
     });
@@ -511,8 +511,15 @@ async function handleRequest(
         await new Promise((resolve) => setTimeout(resolve, scenarioDelay));
       }
 
-      // Add custom response headers
+      // Add custom response headers (global + endpoint-specific)
       const responseHeaders: Record<string, string> = { ...corsHeaders };
+
+      // Apply global project headers first
+      if (endpoint.project.defaultHeaders && typeof endpoint.project.defaultHeaders === "object") {
+        Object.assign(responseHeaders, endpoint.project.defaultHeaders);
+      }
+
+      // Apply endpoint-specific headers (these override global headers)
       if (endpoint.responseHeaders && typeof endpoint.responseHeaders === "object") {
         Object.assign(responseHeaders, endpoint.responseHeaders);
       }
@@ -587,8 +594,15 @@ async function handleRequest(
       }
     }
 
-    // Add custom response headers
+    // Add custom response headers (global + endpoint-specific)
     const responseHeaders: Record<string, string> = { ...corsHeaders };
+
+    // Apply global project headers first
+    if (endpoint.project.defaultHeaders && typeof endpoint.project.defaultHeaders === "object") {
+      Object.assign(responseHeaders, endpoint.project.defaultHeaders);
+    }
+
+    // Apply endpoint-specific headers (these override global headers)
     if (endpoint.responseHeaders && typeof endpoint.responseHeaders === "object") {
       Object.assign(responseHeaders, endpoint.responseHeaders);
     }

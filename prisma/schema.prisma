@@ -80,20 +80,21 @@ model verification {
 // ============================================
 
 model Project {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  description String?
+  id             String     @id @default(cuid())
+  name           String
+  slug           String     @unique
+  description    String?
+  defaultHeaders Json?                       // Global response headers for all endpoints
 
   // Owner
-  user        user       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  user           user       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
 
   // Relations
-  endpoints   Endpoint[]
+  endpoints      Endpoint[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([userId])
 }
