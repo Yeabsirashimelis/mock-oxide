@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-server";
-import { createProject } from "@/lib/db";
+import { createProjectForUser } from "@/lib/services/projects";
+import { toErrorResponse } from "@/lib/services/http";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,36 +12,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, slug, description } = body;
-
-    if (!name || !slug) {
-      return NextResponse.json(
-        { error: "Name and slug are required" },
-        { status: 400 }
-      );
-    }
-
-    const project = await createProject(session.user.id, {
-      name,
-      slug,
-      description,
-    });
+    const project = await createProjectForUser(session.user.id, body);
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    console.error("Create project error:", error);
-
-    // Check for unique constraint violation
-    if (error instanceof Error && error.message.includes("Unique constraint")) {
-      return NextResponse.json(
-        { error: "A project with this slug already exists" },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to create project" },
-      { status: 500 }
-    );
+    return toErrorResponse(error);
   }
 }
