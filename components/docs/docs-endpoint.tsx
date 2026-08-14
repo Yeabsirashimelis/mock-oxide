@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Endpoint } from "@/app/generated/prisma/client";
 import { generateMockData, generateMockArray } from "@/lib/mock-generator";
 import { generateCurl, generateJavaScript, generatePython, generateGo } from "@/lib/code-snippets";
@@ -21,12 +21,17 @@ export function DocsEndpoint({ endpoint, projectSlug }: DocsEndpointProps) {
 
   const url = `${baseUrl}/api/mock/${projectSlug}${endpoint.path}`;
 
-  // Generate example response
-  const exampleData = endpoint.isArray
-    ? generateMockArray(endpoint.schema as any, Math.min(endpoint.arrayCount, 3))
-    : generateMockData(endpoint.schema as any);
+  // Generate example response on the client only. Faker produces different
+  // random data on the server vs the client, which caused a hydration
+  // mismatch, so we defer generation until after mount.
+  const [exampleJson, setExampleJson] = useState<string>("");
 
-  const exampleJson = JSON.stringify(exampleData, null, 2);
+  useEffect(() => {
+    const exampleData = endpoint.isArray
+      ? generateMockArray(endpoint.schema as any, Math.min(endpoint.arrayCount, 3))
+      : generateMockData(endpoint.schema as any);
+    setExampleJson(JSON.stringify(exampleData, null, 2));
+  }, [endpoint]);
 
   // Code snippets
   const codeSnippets = {
@@ -150,7 +155,9 @@ export function DocsEndpoint({ endpoint, projectSlug }: DocsEndpointProps) {
               <CopyButton text={exampleJson} />
             </div>
             <div className="bg-zinc-950 border border-zinc-700 rounded p-4 overflow-x-auto">
-              <pre className="text-sm text-zinc-300 font-mono">{exampleJson}</pre>
+              <pre className="text-sm text-zinc-300 font-mono">
+                {exampleJson || "Generating example…"}
+              </pre>
             </div>
             {endpoint.isArray && endpoint.arrayCount > 3 && (
               <p className="text-xs text-zinc-500 mt-2">
