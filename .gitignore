@@ -67,3 +67,6 @@ test-session.txt
 
 /app/generated/prisma
 .claude
+# Playwright MCP artifacts
+.playwright-mcp/
+docs-check.md

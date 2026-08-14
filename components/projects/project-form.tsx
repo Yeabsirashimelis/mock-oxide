@@ -115,7 +115,7 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
               value={formData.slug}
               onChange={handleChange}
               placeholder="my-api-project"
-              pattern="[a-z0-9-]+"
+              pattern="[a-z0-9\-]+"
               disabled={mode === "edit"}
               className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed font-mono"
             />
