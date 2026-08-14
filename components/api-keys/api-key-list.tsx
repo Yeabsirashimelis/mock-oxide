@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CopyButton } from "@/components/ui/copy-button";
 
@@ -22,6 +22,12 @@ export function ApiKeyList({ initialKeys }: ApiKeyListProps) {
   const router = useRouter();
   const [keys, setKeys] = useState(initialKeys);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  // Keep local state in sync when the server re-renders (e.g. after creating a
+  // key triggers router.refresh()); useState ignores prop changes otherwise.
+  useEffect(() => {
+    setKeys(initialKeys);
+  }, [initialKeys]);
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
