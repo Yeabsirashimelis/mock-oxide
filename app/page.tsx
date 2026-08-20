@@ -19,7 +19,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl font-mono text-blue-400">{"{ }"}</span>
-            <span className="font-bold">Mock API Playground</span>
+            <span className="font-bold">Mock Oxide</span>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -125,7 +125,7 @@ export default async function Home() {
       {/* Footer */}
       <footer className="border-t border-zinc-800 mt-24">
         <div className="max-w-6xl mx-auto px-4 py-8 text-center text-zinc-500">
-          <p>Mock API Playground - Build APIs without a backend</p>
+          <p>Mock Oxide - Build APIs without a backend</p>
         </div>
       </footer>
     </div>

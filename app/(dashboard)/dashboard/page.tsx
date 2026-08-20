@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "@/lib/auth-server";
 import { getProjectsByUserId } from "@/lib/db";
 import { ImportProjectButton } from "@/components/projects/import-project-button";
+import { CreateDemoButton } from "@/components/dashboard/create-demo-button";
 
 type ProjectWithCount = Awaited<ReturnType<typeof getProjectsByUserId>>[number];
 
@@ -55,12 +56,15 @@ export default async function DashboardPage() {
             {projects.reduce((acc: number, p: typeof projects[0]) => acc + p._count.endpoints, 0)}
           </p>
         </div>
-        <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
-          <p className="text-sm text-zinc-400 mb-1">Base URL</p>
-          <p className="text-sm font-mono text-zinc-300 truncate">
-            {process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mock/
+        <Link
+          href="/dashboard/api-keys#connect-agent"
+          className="p-6 bg-gradient-to-br from-blue-500/10 to-zinc-900 border border-blue-500/20 rounded-lg hover:border-blue-500/40 transition-colors group"
+        >
+          <p className="text-sm text-blue-400 mb-1">✦ Connect your AI agent</p>
+          <p className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+            Let Claude build your mock APIs over MCP →
           </p>
-        </div>
+        </Link>
       </div>
 
       {/* Projects Grid */}
@@ -73,27 +77,31 @@ export default async function DashboardPage() {
             No projects yet
           </h3>
           <p className="text-zinc-500 mb-6">
-            Create your first project to start building mock APIs
+            Create your first project — or seed a working sample API in one
+            click to see how everything fits together
           </p>
-          <Link
-            href="/dashboard/projects/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              href="/dashboard/projects/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
             >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Create Project
-          </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Create Project
+            </Link>
+            <CreateDemoButton />
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

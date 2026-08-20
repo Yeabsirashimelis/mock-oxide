@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CopyButton } from "@/components/ui/copy-button";
 
 interface ApiKey {
   id: string;
@@ -91,7 +90,6 @@ export function ApiKeyList({ initialKeys }: ApiKeyListProps) {
                 <code className="text-xs font-mono text-zinc-400 bg-zinc-950 px-2 py-1 rounded">
                   {apiKey.key}
                 </code>
-                <CopyButton text={apiKey.key} />
               </div>
             </div>
             <button

@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mock API Playground",
+  title: "Mock Oxide",
   description: "Build mock REST APIs without writing code. Define your schema, get instant endpoints with realistic data for testing and development.",
-  keywords: ["mock api", "rest api", "fake api", "api testing", "mock data", "api playground"],
-  authors: [{ name: "Mock API Playground" }],
+  keywords: ["mock api", "rest api", "fake api", "api testing", "mock data", "mock oxide"],
+  authors: [{ name: "Mock Oxide" }],
   openGraph: {
-    title: "Mock API Playground",
+    title: "Mock Oxide",
     description: "Build mock REST APIs in seconds",
     type: "website",
   },
