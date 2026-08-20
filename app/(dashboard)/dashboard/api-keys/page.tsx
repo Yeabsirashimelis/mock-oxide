@@ -22,6 +22,12 @@ export default async function ApiKeysPage() {
     },
   });
 
+  // The full key is only shown once, at creation — the list gets a mask.
+  const maskedKeys = apiKeys.map((k) => ({
+    ...k,
+    key: `${k.key.slice(0, 6)}••••••••${k.key.slice(-4)}`,
+  }));
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -39,7 +45,7 @@ export default async function ApiKeysPage() {
       />
 
       <Suspense fallback={<div className="text-zinc-400">Loading...</div>}>
-        <ApiKeyList initialKeys={apiKeys} />
+        <ApiKeyList initialKeys={maskedKeys} />
       </Suspense>
     </div>
   );
