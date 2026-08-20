@@ -55,12 +55,15 @@ export default async function DashboardPage() {
             {projects.reduce((acc: number, p: typeof projects[0]) => acc + p._count.endpoints, 0)}
           </p>
         </div>
-        <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
-          <p className="text-sm text-zinc-400 mb-1">Base URL</p>
-          <p className="text-sm font-mono text-zinc-300 truncate">
-            {process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mock/
+        <Link
+          href="/dashboard/api-keys#connect-agent"
+          className="p-6 bg-gradient-to-br from-blue-500/10 to-zinc-900 border border-blue-500/20 rounded-lg hover:border-blue-500/40 transition-colors group"
+        >
+          <p className="text-sm text-blue-400 mb-1">✦ Connect your AI agent</p>
+          <p className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+            Let Claude build your mock APIs over MCP →
           </p>
-        </div>
+        </Link>
       </div>
 
       {/* Projects Grid */}

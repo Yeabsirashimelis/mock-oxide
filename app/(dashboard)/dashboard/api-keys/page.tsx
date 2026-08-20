@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { ApiKeyList } from "@/components/api-keys/api-key-list";
 import { CreateApiKeyButton } from "@/components/api-keys/create-api-key-button";
+import { McpConnectCard } from "@/components/api-keys/mcp-connect-card";
 
 export default async function ApiKeysPage() {
   const session = await requireAuth();
@@ -32,6 +33,10 @@ export default async function ApiKeysPage() {
         </div>
         <CreateApiKeyButton />
       </div>
+
+      <McpConnectCard
+        baseUrl={process.env.BETTER_AUTH_URL || "http://localhost:3000"}
+      />
 
       <Suspense fallback={<div className="text-zinc-400">Loading...</div>}>
         <ApiKeyList initialKeys={apiKeys} />
