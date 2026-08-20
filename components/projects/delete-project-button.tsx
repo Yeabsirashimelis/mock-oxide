@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface DeleteProjectButtonProps {
   projectId: string;
@@ -11,6 +12,7 @@ interface DeleteProjectButtonProps {
 
 export function DeleteProjectButton({ projectId, projectSlug, variant = "default" }: DeleteProjectButtonProps) {
   const router = useRouter();
+  const { toast } = useFeedback();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -26,11 +28,12 @@ export function DeleteProjectButton({ projectId, projectSlug, variant = "default
         throw new Error("Failed to delete project");
       }
 
+      toast("Project deleted");
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Failed to delete project");
+      toast("Failed to delete project", "error");
     } finally {
       setIsDeleting(false);
       setShowConfirm(false);

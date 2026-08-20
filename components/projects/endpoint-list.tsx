@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Endpoint } from "@/app/generated/prisma/client";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface EndpointListProps {
   endpoints: Endpoint[];
@@ -20,6 +21,7 @@ const methodColors: Record<string, string> = {
 
 export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
   const router = useRouter();
+  const { toast, confirm } = useFeedback();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showDisabled, setShowDisabled] = useState(true);
@@ -66,13 +68,14 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
       });
       if (response.ok) {
         clearSelection();
+        toast("Endpoints enabled");
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to enable endpoints");
+        toast(data.error || "Failed to enable endpoints", "error");
       }
     } catch (error) {
-      alert("Failed to enable endpoints");
+      toast("Failed to enable endpoints", "error");
       console.error(error);
     } finally {
       setBulkLoading(false);
@@ -90,13 +93,14 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
       });
       if (response.ok) {
         clearSelection();
+        toast("Endpoints disabled");
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to disable endpoints");
+        toast(data.error || "Failed to disable endpoints", "error");
       }
     } catch (error) {
-      alert("Failed to disable endpoints");
+      toast("Failed to disable endpoints", "error");
       console.error(error);
     } finally {
       setBulkLoading(false);
@@ -105,9 +109,13 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedIds.size} endpoint(s)? This action cannot be undone.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Delete ${selectedIds.size} endpoint(s)`,
+      message: "The endpoints and their request logs will be permanently deleted. This action cannot be undone.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     setBulkLoading(true);
     try {
       const response = await fetch(`/api/projects/${projectSlug}/endpoints/bulk`, {
@@ -117,13 +125,14 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
       });
       if (response.ok) {
         clearSelection();
+        toast("Endpoints deleted");
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to delete endpoints");
+        toast(data.error || "Failed to delete endpoints", "error");
       }
     } catch (error) {
-      alert("Failed to delete endpoints");
+      toast("Failed to delete endpoints", "error");
       console.error(error);
     } finally {
       setBulkLoading(false);
@@ -142,13 +151,14 @@ export function EndpointList({ endpoints, projectSlug }: EndpointListProps) {
       });
 
       if (response.ok) {
+        toast("Endpoint duplicated");
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to duplicate endpoint");
+        toast(data.error || "Failed to duplicate endpoint", "error");
       }
     } catch (error) {
-      alert("Failed to duplicate endpoint");
+      toast("Failed to duplicate endpoint", "error");
       console.error(error);
     } finally {
       setDuplicating(null);

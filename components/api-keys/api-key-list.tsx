@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface ApiKey {
   id: string;
@@ -19,6 +20,7 @@ interface ApiKeyListProps {
 
 export function ApiKeyList({ initialKeys }: ApiKeyListProps) {
   const router = useRouter();
+  const { toast, confirm } = useFeedback();
   const [keys, setKeys] = useState(initialKeys);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -29,9 +31,13 @@ export function ApiKeyList({ initialKeys }: ApiKeyListProps) {
   }, [initialKeys]);
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Delete API key",
+      message: `"${name}" will stop working immediately. This action cannot be undone.`,
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
 
     setDeleting(id);
 
@@ -42,11 +48,12 @@ export function ApiKeyList({ initialKeys }: ApiKeyListProps) {
 
       if (response.ok) {
         setKeys((prev) => prev.filter((key) => key.id !== id));
+        toast("API key deleted");
       } else {
-        alert("Failed to delete API key");
+        toast("Failed to delete API key", "error");
       }
     } catch (error) {
-      alert("Failed to delete API key");
+      toast("Failed to delete API key", "error");
     } finally {
       setDeleting(null);
     }

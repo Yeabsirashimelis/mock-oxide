@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Endpoint } from "@/app/generated/prisma/client";
 import { pathParamNames } from "@/lib/path-params";
+import { useFeedback } from "@/components/ui/feedback";
 import { LivePreview } from "./live-preview";
 import { CodeSnippets } from "./code-snippets";
 
@@ -56,6 +57,7 @@ const SCHEMA_EXAMPLES = {
 
 export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormProps) {
   const router = useRouter();
+  const { toast, confirm } = useFeedback();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<SchemaTemplate[]>([]);
@@ -192,6 +194,7 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
         setTemplateDescription("");
         setShowSaveTemplate(false);
         setError(null);
+        toast("Template saved");
       } else {
         setError("Failed to save template");
       }
@@ -208,9 +211,13 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
   };
 
   const handleDeleteTemplate = async (templateId: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Delete template",
+      message: "The saved schema template will be removed for good.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       const response = await fetch(`/api/templates/${templateId}`, {

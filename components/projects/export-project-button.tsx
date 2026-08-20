@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface ExportProjectButtonProps {
   projectSlug: string;
 }
 
 export function ExportProjectButton({ projectSlug }: ExportProjectButtonProps) {
+  const { toast } = useFeedback();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
@@ -30,7 +32,7 @@ export function ExportProjectButton({ projectSlug }: ExportProjectButtonProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      alert("Failed to export project");
+      toast("Failed to export project", "error");
       console.error(error);
     } finally {
       setIsExporting(false);
