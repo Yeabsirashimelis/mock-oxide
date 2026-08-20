@@ -1,6 +1,11 @@
-import { createProject } from "@/lib/db";
+import { createProject, getProjectsByUserId } from "@/lib/db";
 import { ConflictError, ValidationError } from "./errors";
 import { isUniqueConstraintError } from "./prisma";
+
+/** Lists the user's projects with endpoint counts, newest first. */
+export async function listProjectsForUser(userId: string) {
+  return getProjectsByUserId(userId);
+}
 
 export interface CreateProjectInput {
   name?: string;

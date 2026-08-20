@@ -31,6 +31,29 @@ export interface CreateEndpointInput {
 }
 
 /**
+ * Lists all endpoints of the project identified by `slug` (including
+ * disabled ones), verifying that `userId` owns it.
+ */
+export async function listEndpointsForUser(userId: string, slug: string) {
+  const project = await prisma.project.findUnique({
+    where: { slug },
+    include: {
+      endpoints: { orderBy: { createdAt: "asc" } },
+    },
+  });
+
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+
+  if (project.userId !== userId) {
+    throw new ForbiddenError();
+  }
+
+  return project.endpoints;
+}
+
+/**
  * Creates an endpoint under the project identified by `slug`, verifying that
  * `userId` owns it. Resolves the project, authorizes, validates required
  * fields and maps a duplicate path+method to a ConflictError. Callable from
