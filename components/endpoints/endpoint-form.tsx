@@ -63,6 +63,7 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateSearch, setTemplateSearch] = useState("");
+  const [showTypeRef, setShowTypeRef] = useState(false);
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -1109,6 +1110,31 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                     <p className="text-xs text-zinc-500 italic">No templates found</p>
                   )}
                 </div>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowTypeRef((v) => !v)}
+              className="mb-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {showTypeRef ? "▾ Hide type reference" : "▸ Type reference"}
+            </button>
+            {showTypeRef && (
+              <div className="mb-3 p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-xs space-y-2">
+                {[
+                  ["Basic", "uuid · string · sentence · paragraph · integer · number · price · boolean · date · datetime"],
+                  ["People", "firstName · lastName · fullName · username · email · phone · avatar · bio"],
+                  ["Web & location", "url · imageUrl · ip · slug · address · city · country · zipCode · latitude · longitude"],
+                  ["Commerce", "productName · productDescription · category · company · jobTitle · creditCard · currency · color"],
+                  ["Constrained", '"integer:18-65" · "number:0-100" · "enum:red,green,blue" · "regex:[A-Z]{3}-[0-9]{4}"'],
+                  ["Arrays & modifiers", '"array:email:5" · "string[]" · nullable: "email?"'],
+                  ["Nested objects", '{"author": {"name": "fullName", "email": "email"}}'],
+                ].map(([label, types]) => (
+                  <div key={label} className="flex gap-2">
+                    <span className="w-32 shrink-0 text-zinc-500">{label}</span>
+                    <code className="text-zinc-300">{types}</code>
+                  </div>
+                ))}
               </div>
             )}
             <textarea
