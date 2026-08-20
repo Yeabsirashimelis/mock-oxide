@@ -8,7 +8,7 @@ export default function AuthLayout({
       <div className="mb-8">
         <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
           <span className="text-2xl">{"{ }"}</span>
-          <span>Mock API Playground</span>
+          <span>Mock Oxide</span>
         </h2>
       </div>
       {children}

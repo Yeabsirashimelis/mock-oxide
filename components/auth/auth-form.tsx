@@ -102,7 +102,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           <p className="text-zinc-400 mt-2">
             {mode === "sign-in"
               ? "Sign in to your account to continue"
-              : "Get started with Mock API Playground"}
+              : "Get started with Mock Oxide"}
           </p>
         </div>
 

@@ -18,7 +18,7 @@ export function DocsHeader({ project, apiBaseUrl }: DocsHeaderProps) {
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl font-mono text-blue-400">{"{ }"}</span>
-              <span className="font-bold text-zinc-100">Mock API</span>
+              <span className="font-bold text-zinc-100">Mock Oxide</span>
             </Link>
             <span className="text-zinc-600">/</span>
             <h1 className="text-lg font-semibold text-zinc-100">{project.name}</h1>
