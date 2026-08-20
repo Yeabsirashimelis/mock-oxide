@@ -32,10 +32,12 @@ export function DashboardNav({ user }: DashboardNavProps) {
   return (
     <header className="border-b border-zinc-800 bg-zinc-900/50">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 sm:gap-8">
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="text-xl font-mono text-blue-400">{"{ }"}</span>
-            <span className="font-bold text-zinc-100">Mock Oxide</span>
+            <span className="font-bold text-zinc-100 whitespace-nowrap hidden sm:inline">
+              Mock Oxide
+            </span>
           </Link>
 
           <nav className="flex items-center gap-6">
@@ -67,7 +69,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
             <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-medium text-zinc-200">
               {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
             </div>
-            <span className="text-sm text-zinc-300">
+            <span className="text-sm text-zinc-300 hidden sm:inline">
               {user.name || user.email}
             </span>
           </div>

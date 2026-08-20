@@ -26,7 +26,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-8">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Link
@@ -44,7 +44,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link
             href={`/dashboard/projects/${project.slug}/test`}
             className="px-4 py-2 border border-zinc-700 hover:border-zinc-600 rounded-lg font-medium text-zinc-300 transition-colors flex items-center gap-2"
@@ -113,7 +113,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
           <p className="text-sm text-zinc-400 mb-2">Base URL</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+            <code className="flex-1 min-w-0 truncate text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
               {apiUrl}
             </code>
             <CopyButton text={apiUrl} />
@@ -123,7 +123,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
           <p className="text-sm text-zinc-400 mb-2">API Documentation</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+            <code className="flex-1 min-w-0 truncate text-sm font-mono text-zinc-100 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
               {baseUrl}/docs/{project.slug}
             </code>
             <CopyButton text={`${baseUrl}/docs/${project.slug}`} />
