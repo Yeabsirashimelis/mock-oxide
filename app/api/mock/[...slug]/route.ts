@@ -39,6 +39,11 @@ function jsonResponse(
   status: number = 200,
   headers: Record<string, string> = {}
 ): NextResponse {
+  // 204 and 304 must not carry a body — Response throws if given one.
+  if (status === 204 || status === 304) {
+    return new NextResponse(null, { status, headers });
+  }
+
   return NextResponse.json(data, {
     status,
     headers: {
