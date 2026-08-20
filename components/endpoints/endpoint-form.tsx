@@ -66,6 +66,23 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateSearch, setTemplateSearch] = useState("");
   const [showTypeRef, setShowTypeRef] = useState(false);
+  // Advanced options start collapsed, but open when editing an endpoint
+  // that already uses one of them so existing config stays visible.
+  const [showAdvanced, setShowAdvanced] = useState(
+    Boolean(
+      initialData &&
+        (initialData.delay > 0 ||
+          initialData.rateLimit ||
+          initialData.stateful ||
+          initialData.authRequired ||
+          initialData.validateRequest ||
+          (initialData.responseHeaders &&
+            Object.keys(initialData.responseHeaders as object).length > 0) ||
+          (initialData.corsOrigins && initialData.corsOrigins.length > 0) ||
+          (Array.isArray(initialData.scenarios) &&
+            (initialData.scenarios as unknown[]).length > 0))
+    )
+  );
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -516,6 +533,58 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
             />
           </div>
 
+          <div className="space-y-3">
+            <label className="flex items-center gap-3">
+              <input
+                name="isArray"
+                type="checkbox"
+                checked={formData.isArray}
+                onChange={handleChange}
+                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <span className="text-sm text-zinc-300">Return as array</span>
+            </label>
+
+            {formData.isArray && (
+              <div className="ml-7 space-y-3">
+                <div className="flex items-center gap-4">
+                  <label className="text-sm text-zinc-400">Array size:</label>
+                  <input
+                    name="arrayCount"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.arrayCount}
+                    onChange={handleChange}
+                    className="w-24 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    name="pagination"
+                    type="checkbox"
+                    checked={formData.pagination}
+                    onChange={handleChange}
+                    className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-zinc-300">Enable pagination</span>
+                </label>
+              </div>
+            )}
+
+            <label className="flex items-center gap-3">
+              <input
+                name="enabled"
+                type="checkbox"
+                checked={formData.enabled}
+                onChange={handleChange}
+                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm text-zinc-300">Enabled</span>
+            </label>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
@@ -529,7 +598,20 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+          </div>
 
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            {showAdvanced
+              ? "▾ Hide advanced options"
+              : "▸ Advanced options — delay, rate limit, auth, headers, CORS, scenarios"}
+          </button>
+
+          {showAdvanced && (
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
                 Delay (ms)
@@ -581,12 +663,11 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 </button>
               </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Rate Limit (requests per minute, optional)
-            </label>
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Rate Limit (requests per minute, optional)
+              </label>
             <input
               name="rateLimit"
               type="number"
@@ -609,45 +690,6 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
           </div>
 
           <div className="space-y-3">
-            <label className="flex items-center gap-3">
-              <input
-                name="isArray"
-                type="checkbox"
-                checked={formData.isArray}
-                onChange={handleChange}
-                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-              />
-              <span className="text-sm text-zinc-300">Return as array</span>
-            </label>
-
-            {formData.isArray && (
-              <div className="ml-7 space-y-3">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm text-zinc-400">Array size:</label>
-                  <input
-                    name="arrayCount"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={formData.arrayCount}
-                    onChange={handleChange}
-                    className="w-24 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    name="pagination"
-                    type="checkbox"
-                    checked={formData.pagination}
-                    onChange={handleChange}
-                    className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-zinc-300">Enable pagination</span>
-                </label>
-              </div>
-            )}
-
             <label className="flex items-center gap-3">
               <input
                 name="stateful"
@@ -679,17 +721,6 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-zinc-300">Validate request body</span>
-            </label>
-
-            <label className="flex items-center gap-3">
-              <input
-                name="enabled"
-                type="checkbox"
-                checked={formData.enabled}
-                onChange={handleChange}
-                className="w-4 h-4 bg-zinc-900 border-zinc-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-sm text-zinc-300">Enabled</span>
             </label>
           </div>
 
@@ -992,6 +1023,8 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
               </p>
             )}
           </div>
+          </div>
+          )}
         </div>
 
         {/* Right Column - Schema Editor */}
