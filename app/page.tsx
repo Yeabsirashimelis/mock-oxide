@@ -45,8 +45,9 @@ export default async function Home() {
             Build Mock APIs in Seconds
           </h1>
           <p className="text-xl text-zinc-400 mb-8">
-            Define a JSON schema, get a public URL that returns realistic mock data.
-            Perfect for frontend development, testing, and prototyping.
+            Define a JSON schema — or let your AI agent do it — and get a live
+            URL that returns realistic mock data. Perfect for frontend
+            development, testing, and prototyping.
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
@@ -88,8 +89,31 @@ export default async function Home() {
           </pre>
         </div>
 
+        {/* Agent story */}
+        <div className="mt-24 p-8 bg-gradient-to-br from-blue-500/10 via-zinc-900 to-purple-500/10 border border-blue-500/20 rounded-lg">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-sm font-medium text-blue-400 mb-2">
+              ✦ MCP-native
+            </p>
+            <h2 className="text-3xl font-bold mb-4">
+              Your AI agent builds the backend
+            </h2>
+            <p className="text-zinc-400 mb-6">
+              Connect Claude Code over MCP and prompt it: &quot;create the API
+              my frontend needs&quot;. The agent reads your components, creates
+              matching endpoints here, and wires the live URLs back into your
+              code — before any real backend exists.
+            </p>
+            <pre className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-left text-sm font-mono overflow-x-auto text-zinc-300">
+              <code>{`claude mcp add --transport http mock-oxide \\
+  https://your-mock-oxide.app/api/mcp \\
+  --header "Authorization: Bearer <your-api-key>"`}</code>
+            </pre>
+          </div>
+        </div>
+
         {/* Features */}
-        <div id="features" className="mt-24 grid md:grid-cols-3 gap-8">
+        <div id="features" className="mt-24 grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
             <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
               <span className="text-blue-400 text-xl">{"{ }"}</span>
@@ -106,7 +130,7 @@ export default async function Home() {
             </div>
             <h3 className="text-lg font-semibold mb-2">REST & CRUD</h3>
             <p className="text-zinc-400">
-              Full REST support with GET, POST, PUT, PATCH, DELETE. Stateful CRUD operations.
+              All HTTP methods, dynamic paths like /users/:id, validation, and stateful CRUD.
             </p>
           </div>
 
@@ -114,9 +138,19 @@ export default async function Home() {
             <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
               <span className="text-green-400 text-xl">#</span>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Instant URLs</h3>
+            <h3 className="text-lg font-semibold mb-2">Feels Real</h3>
             <p className="text-zinc-400">
-              Get shareable URLs immediately. Use them in your frontend, tests, or demos.
+              /users/123 returns the same user every time. Pagination, delays, and error scenarios on demand.
+            </p>
+          </div>
+
+          <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
+            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <span className="text-amber-400 text-xl">✦</span>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Agent-Native</h3>
+            <p className="text-zinc-400">
+              A built-in MCP server lets Claude and other agents create whole APIs from a prompt.
             </p>
           </div>
         </div>

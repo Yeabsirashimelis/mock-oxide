@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface DuplicateEndpointButtonProps {
   projectSlug: string;
@@ -10,12 +11,16 @@ interface DuplicateEndpointButtonProps {
 
 export function DuplicateEndpointButton({ projectSlug, endpointId }: DuplicateEndpointButtonProps) {
   const router = useRouter();
+  const { toast, confirm } = useFeedback();
   const [isDuplicating, setIsDuplicating] = useState(false);
 
   const handleDuplicate = async () => {
-    if (!confirm("Duplicate this endpoint? A copy will be created with '-copy' appended to the path.")) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Duplicate endpoint",
+      message: "A copy will be created with '-copy' appended to the path.",
+      confirmLabel: "Duplicate",
+    });
+    if (!ok) return;
 
     setIsDuplicating(true);
 
@@ -26,15 +31,16 @@ export function DuplicateEndpointButton({ projectSlug, endpointId }: DuplicateEn
 
       if (response.ok) {
         const data = await response.json();
+        toast("Endpoint duplicated");
         // Redirect to the duplicated endpoint
         router.push(`/dashboard/projects/${projectSlug}/endpoints/${data.endpoint.id}`);
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to duplicate endpoint");
+        toast(data.error || "Failed to duplicate endpoint", "error");
       }
     } catch (error) {
-      alert("Failed to duplicate endpoint");
+      toast("Failed to duplicate endpoint", "error");
       console.error(error);
     } finally {
       setIsDuplicating(false);

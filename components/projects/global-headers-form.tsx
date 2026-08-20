@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFeedback } from "@/components/ui/feedback";
 
 interface GlobalHeadersFormProps {
   projectSlug: string;
@@ -13,6 +14,7 @@ export function GlobalHeadersForm({
   initialHeaders,
 }: GlobalHeadersFormProps) {
   const router = useRouter();
+  const { toast } = useFeedback();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -67,6 +69,7 @@ export function GlobalHeadersForm({
       }
 
       setSuccess(true);
+      toast("Global headers saved");
       router.refresh();
 
       // Clear success message after 3 seconds
