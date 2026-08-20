@@ -14,7 +14,7 @@ type JsonValue = Prisma.InputJsonValue;
 
 function getCorsHeaders(origin?: string, allowedOrigins?: string[]): Record<string, string> {
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
     "Access-Control-Max-Age": "86400",
   };
@@ -39,6 +39,11 @@ function jsonResponse(
   status: number = 200,
   headers: Record<string, string> = {}
 ): NextResponse {
+  // 204 and 304 must not carry a body — Response throws if given one.
+  if (status === 204 || status === 304) {
+    return new NextResponse(null, { status, headers });
+  }
+
   return NextResponse.json(data, {
     status,
     headers: {
@@ -414,7 +419,10 @@ async function handleRequest(
 ): Promise<NextResponse> {
   const startTime = Date.now();
   const { slug } = await params;
-  const method = req.method as HttpMethod;
+  const requestMethod = req.method;
+  // HEAD is served as its GET counterpart (same status and headers, no
+  // body — the HEAD export strips it), so resolve the GET endpoint.
+  const method = (requestMethod === "HEAD" ? "GET" : requestMethod) as HttpMethod;
   const origin = req.headers.get("origin") || undefined;
 
   // Parse URL
@@ -496,7 +504,7 @@ async function handleRequest(
     // Rate limiting
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     if (!checkRateLimit(endpoint.id, endpoint.rateLimit, ip)) {
-      logRequest(endpoint.id, method, endpointPath, req, 429, startTime, body);
+      logRequest(endpoint.id, requestMethod, endpointPath, req, 429, startTime, body);
       return errorResponse(
         "Rate limit exceeded",
         429,
@@ -509,7 +517,7 @@ async function handleRequest(
       const apiKey = req.headers.get("x-api-key") || req.headers.get("authorization")?.replace("Bearer ", "");
 
       if (!apiKey) {
-        logRequest(endpoint.id, method, endpointPath, req, 401, startTime, body);
+        logRequest(endpoint.id, requestMethod, endpointPath, req, 401, startTime, body);
         return errorResponse("API key required", 401, corsHeaders);
       }
 
@@ -518,7 +526,7 @@ async function handleRequest(
       });
 
       if (!validKey || (validKey.expiresAt && validKey.expiresAt < new Date())) {
-        logRequest(endpoint.id, method, endpointPath, req, 401, startTime, body);
+        logRequest(endpoint.id, requestMethod, endpointPath, req, 401, startTime, body);
         return errorResponse("Invalid or expired API key", 401, corsHeaders);
       }
 
@@ -535,7 +543,7 @@ async function handleRequest(
       const validation = validateRequestBody(body, schema);
 
       if (!validation.valid) {
-        logRequest(endpoint.id, method, endpointPath, req, 400, startTime, body);
+        logRequest(endpoint.id, requestMethod, endpointPath, req, 400, startTime, body);
         return jsonResponse(
           {
             error: "Validation failed",
@@ -576,7 +584,7 @@ async function handleRequest(
       // Log request
       logRequest(
         endpoint.id,
-        method,
+        requestMethod,
         endpointPath,
         req,
         matchingScenario.response.statusCode,
@@ -622,7 +630,7 @@ async function handleRequest(
       if (itemId !== null) {
         const result = await handleStatefulItemRequest(endpoint, method, itemId, body);
         if (!result) {
-          logRequest(endpoint.id, method, endpointPath, req, 404, startTime, body);
+          logRequest(endpoint.id, requestMethod, endpointPath, req, 404, startTime, body);
           return errorResponse("Item not found", 404, corsHeaders);
         }
         responseData = result.data;
@@ -683,7 +691,7 @@ async function handleRequest(
     }
 
     // Log request
-    logRequest(endpoint.id, method, endpointPath, req, statusCode, startTime, body);
+    logRequest(endpoint.id, requestMethod, endpointPath, req, statusCode, startTime, body);
 
     return jsonResponse(responseData, statusCode, responseHeaders);
   } catch (error) {
@@ -718,6 +726,15 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ slug:
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
   return handleRequest(req, context);
+}
+
+export async function HEAD(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  // Same status and headers as GET, without the body.
+  const response = await handleRequest(req, context);
+  return new NextResponse(null, {
+    status: response.status,
+    headers: response.headers,
+  });
 }
 
 export async function OPTIONS(req: NextRequest) {
