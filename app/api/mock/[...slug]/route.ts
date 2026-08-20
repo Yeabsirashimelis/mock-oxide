@@ -4,6 +4,7 @@ import { generateMockData, generateMockArray, generatePaginatedResponse } from "
 import { HttpMethod, Prisma } from "@/app/generated/prisma/client";
 import { SchemaDefinition } from "@/lib/types";
 import { validateRequestBody } from "@/lib/validator";
+import { findBestMatch } from "@/lib/path-params";
 
 type JsonValue = Prisma.InputJsonValue;
 
@@ -78,6 +79,28 @@ function parseSlug(slug: string[]): ParsedUrl | null {
   const endpointPath = "/" + pathParts.join("/");
 
   return { projectSlug, endpointPath };
+}
+
+// ============================================
+// PATH PARAM HELPERS
+// ============================================
+
+/**
+ * Derives a stable numeric seed from path parameter values so that e.g.
+ * /users/123 returns the same generated user on every request, and /users/456
+ * returns a different (but equally stable) one.
+ */
+function seedFromPathParams(params: Record<string, string>): number {
+  const input = Object.keys(params)
+    .sort()
+    .map((k) => `${k}=${params[k]}`)
+    .join("&");
+
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash + input.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
 }
 
 // ============================================
@@ -407,8 +430,9 @@ async function handleRequest(
   const { projectSlug, endpointPath } = parsed;
 
   try {
-    // Find endpoint
-    const endpoint = await prisma.endpoint.findFirst({
+    // Find endpoint: exact path match first, then parameterized patterns
+    // like /users/:id or /users/{id}. Exact matches always win.
+    let endpoint = await prisma.endpoint.findFirst({
       where: {
         path: endpointPath,
         method,
@@ -423,6 +447,31 @@ async function handleRequest(
         },
       },
     });
+
+    let pathParams: Record<string, string> = {};
+
+    if (!endpoint) {
+      const candidates = await prisma.endpoint.findMany({
+        where: {
+          method,
+          enabled: true,
+          project: { slug: projectSlug },
+          OR: [{ path: { contains: ":" } }, { path: { contains: "{" } }],
+        },
+        include: {
+          project: {
+            select: { id: true, slug: true, name: true, defaultHeaders: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      const match = findBestMatch(candidates, endpointPath);
+      if (match) {
+        endpoint = match.endpoint;
+        pathParams = match.params;
+      }
+    }
 
     if (!endpoint) {
       return errorResponse(
@@ -556,13 +605,22 @@ async function handleRequest(
 
     // Handle stateful endpoints
     if (endpoint.stateful) {
-      // Check if this is a request for a specific item (e.g., /users/123)
+      // A request for a specific item: either the endpoint declares a path
+      // parameter (e.g. /users/:id) and it matched, or the last URL segment
+      // is a UUID (legacy heuristic).
+      const paramValues = Object.values(pathParams);
       const pathParts = endpointPath.split("/").filter(Boolean);
       const lastPart = pathParts[pathParts.length - 1];
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lastPart);
+      const itemId =
+        paramValues.length > 0
+          ? paramValues[paramValues.length - 1]
+          : isUuid && pathParts.length > 1
+          ? lastPart
+          : null;
 
-      if (isUuid && pathParts.length > 1) {
-        const result = await handleStatefulItemRequest(endpoint, method, lastPart, body);
+      if (itemId !== null) {
+        const result = await handleStatefulItemRequest(endpoint, method, itemId, body);
         if (!result) {
           logRequest(endpoint.id, method, endpointPath, req, 404, startTime, body);
           return errorResponse("Item not found", 404, corsHeaders);
@@ -575,8 +633,14 @@ async function handleRequest(
         statusCode = result.status;
       }
     } else {
-      // Generate mock data
-      const generatorOptions = queryParams.seed ? { seed: queryParams.seed } : undefined;
+      // Generate mock data. An explicit ?seed= wins; otherwise a
+      // parameter-matched single-object endpoint is seeded from its path
+      // params, so /users/123 returns the same user on every request.
+      const hasPathParams = Object.keys(pathParams).length > 0;
+      let generatorOptions = queryParams.seed ? { seed: queryParams.seed } : undefined;
+      if (!generatorOptions && hasPathParams && !endpoint.isArray) {
+        generatorOptions = { seed: seedFromPathParams(pathParams) };
+      }
 
       if (endpoint.isArray) {
         if (endpoint.pagination) {
@@ -591,6 +655,17 @@ async function handleRequest(
         }
       } else {
         responseData = generateMockData(schema, generatorOptions);
+
+        // Reflect path params in the response: a param whose name matches a
+        // top-level schema field replaces the generated value, so
+        // GET /users/123 answers with id "123" rather than a random one.
+        if (hasPathParams && responseData && typeof responseData === "object") {
+          for (const [key, value] of Object.entries(pathParams)) {
+            if (key in schema) {
+              (responseData as Record<string, unknown>)[key] = value;
+            }
+          }
+        }
       }
     }
 

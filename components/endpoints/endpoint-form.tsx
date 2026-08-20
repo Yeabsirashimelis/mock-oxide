@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Endpoint } from "@/app/generated/prisma/client";
+import { pathParamNames } from "@/lib/path-params";
 import { LivePreview } from "./live-preview";
 import { CodeSnippets } from "./code-snippets";
 
@@ -477,9 +478,19 @@ export function EndpointForm({ mode, projectSlug, initialData }: EndpointFormPro
                 required
                 value={formData.path}
                 onChange={handleChange}
-                placeholder="/users"
+                placeholder="/users/:id"
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
               />
+              {pathParamNames(formData.path).length > 0 ? (
+                <p className="text-xs text-blue-400 mt-1">
+                  Path parameters: {pathParamNames(formData.path).join(", ")} — a
+                  param matching a schema field is echoed into the response
+                </p>
+              ) : (
+                <p className="text-xs text-zinc-500 mt-1">
+                  Use :id (or {"{id}"}) for dynamic segments, e.g. /users/:id
+                </p>
+              )}
             </div>
           </div>
 
