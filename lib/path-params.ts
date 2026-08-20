@@ -59,6 +59,26 @@ export function matchPath(
   return params;
 }
 
+/** Parameter names declared in a path, in order (e.g. /users/:id -> ["id"]). */
+export function pathParamNames(path: string): string[] {
+  return segments(path)
+    .map(paramName)
+    .filter((n): n is string => n !== null);
+}
+
+/** Normalizes a path to OpenAPI style: /users/:id -> /users/{id}. */
+export function toOpenAPIPath(path: string): string {
+  return (
+    "/" +
+    segments(path)
+      .map((s) => {
+        const name = paramName(s);
+        return name !== null ? `{${name}}` : s;
+      })
+      .join("/")
+  );
+}
+
 /**
  * Picks the best-matching pattern for a request path from a list of
  * candidates. More static segments beats fewer (`/users/me` style exact

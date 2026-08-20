@@ -1,4 +1,5 @@
 import { Endpoint, HttpMethod } from "@/app/generated/prisma/client";
+import { pathParamNames, toOpenAPIPath } from "@/lib/path-params";
 
 export interface SchemaDefinition {
   [key: string]: {
@@ -213,13 +214,15 @@ export function generateOpenAPISpec(
     paths: {},
   };
 
-  // Group endpoints by path
+  // Group endpoints by path, normalized to OpenAPI parameter style so
+  // /users/:id and /users/{id} both export (and group) as /users/{id}.
   const pathGroups: Record<string, Array<typeof endpoints[0]>> = {};
   for (const endpoint of endpoints) {
-    if (!pathGroups[endpoint.path]) {
-      pathGroups[endpoint.path] = [];
+    const path = toOpenAPIPath(endpoint.path);
+    if (!pathGroups[path]) {
+      pathGroups[path] = [];
     }
-    pathGroups[endpoint.path].push(endpoint);
+    pathGroups[path].push(endpoint);
   }
 
   // Convert each endpoint to OpenAPI path
@@ -306,9 +309,21 @@ export function generateOpenAPISpec(
         description: "Too Many Requests - Rate limit exceeded",
       };
 
+      // Declare path parameters (e.g. /users/{id} -> id)
+      const paramNames = pathParamNames(endpoint.path);
+      if (paramNames.length > 0) {
+        pathItem.parameters = paramNames.map((name) => ({
+          name,
+          in: "path" as const,
+          required: true,
+          schema: { type: "string" as const },
+        }));
+      }
+
       // Add query parameters for pagination
       if (endpoint.pagination) {
         pathItem.parameters = [
+          ...(pathItem.parameters || []),
           {
             name: "page",
             in: "query",
