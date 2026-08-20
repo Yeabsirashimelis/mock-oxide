@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "@/lib/auth-server";
 import { getProjectsByUserId } from "@/lib/db";
 import { ImportProjectButton } from "@/components/projects/import-project-button";
+import { CreateDemoButton } from "@/components/dashboard/create-demo-button";
 
 type ProjectWithCount = Awaited<ReturnType<typeof getProjectsByUserId>>[number];
 
@@ -76,27 +77,31 @@ export default async function DashboardPage() {
             No projects yet
           </h3>
           <p className="text-zinc-500 mb-6">
-            Create your first project to start building mock APIs
+            Create your first project — or seed a working sample API in one
+            click to see how everything fits together
           </p>
-          <Link
-            href="/dashboard/projects/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              href="/dashboard/projects/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
             >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Create Project
-          </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Create Project
+            </Link>
+            <CreateDemoButton />
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
